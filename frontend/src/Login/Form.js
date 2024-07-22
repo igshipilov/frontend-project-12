@@ -30,14 +30,27 @@ const FormikForm = () => {
 					return errors;
 				}}
 				onSubmit={(values, { setSubmitting }) => {
-					setTimeout(() => {
-						authContext.login();
-						setSubmitting(false);
+					if (!localStorage.getItem("token")) {
+						authContext.login(); // FIXME: временное решение – оно нужно, чтобы визуально тоже юзер оставался залогиненым
 						navigate("/");
-					}, 400);
-                    axios.post('/api/v1/signup', { username: 'newuser', password: '123456' }).then((response) => {
-                        console.log(response.data); // => { token: ..., username: 'newuser' }
-                      });
+					} else {
+						axios
+							.post("/api/v1/signup", {
+								username: values.email,
+								password: values.password,
+							})
+							.then((response) => {
+								authContext.login();
+								setSubmitting(false);
+								navigate("/");
+								console.log("response.data: ", response.data); // => { token: "...", username: "..." }
+								localStorage.setItem(
+									"token",
+									response.data.token
+								);
+								console.log(localStorage.getItem("token"));
+							});
+					}
 				}}
 			>
 				{({ isSubmitting }) => (

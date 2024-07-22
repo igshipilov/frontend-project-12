@@ -26,20 +26,15 @@ function MainPage() {
 // children === <MainPage />
 function PrivateRoute({ children }) {
 	const authContext = useContext(AuthContext);
+
 	if (!authContext.isAuthenticated) {
 		return <Navigate to="/login" />;
 	}
+
 	return children;
 }
 
 function App() {
-	const authContext = useContext(AuthContext);
-
-    // debug, but not working
-	// useEffect(() => {
-	// 	console.log("authContext: ", authContext);
-	// }, []);
-
 	return (
 		<AuthProvider>
 			<BrowserRouter>
