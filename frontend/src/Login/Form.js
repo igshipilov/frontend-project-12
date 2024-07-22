@@ -11,6 +11,49 @@ const FormikForm = () => {
 	const authContext = useContext(AuthContext);
 	const navigate = useNavigate();
 
+	async function signUp(values, setSubmitting) {
+		const response = await axios.post("/api/v1/signup", {
+			username: values.email,
+			password: values.password,
+		});
+
+		authContext.login();
+		setSubmitting(false);
+		navigate("/");
+
+		console.log("response.data: ", response.data); // => { token: "...", username: "..." }
+
+		const token = response.data.token;
+		localStorage.setItem("token", token);
+
+		console.log("!!!!!!!! signedUp succesfully");
+
+		return token;
+	}
+
+	async function getChannels(token) {
+		const response = await axios.get("/api/v1/channels", {
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+		});
+
+		console.log(response.data); // =>[{ id: '1', name: 'general', removable: false }, ...]
+		return response.data;
+	}
+
+    async function getMessages(token) {
+		const response = await axios.get("/api/v1/messages", {
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+		});
+
+		console.log(response.data);
+		return response.data;
+	}
+
+
 	return (
 		<div>
 			<h1>Type in email and password</h1>
@@ -29,27 +72,14 @@ const FormikForm = () => {
 					}
 					return errors;
 				}}
-				onSubmit={(values, { setSubmitting }) => {
-					if (!localStorage.getItem("token")) {
+				onSubmit={async (values, { setSubmitting }) => {
+					if (!!localStorage.getItem("token")) {
 						authContext.login(); // FIXME: временное решение – оно нужно, чтобы визуально тоже юзер оставался залогиненым
 						navigate("/");
 					} else {
-						axios
-							.post("/api/v1/signup", {
-								username: values.email,
-								password: values.password,
-							})
-							.then((response) => {
-								authContext.login();
-								setSubmitting(false);
-								navigate("/");
-								console.log("response.data: ", response.data); // => { token: "...", username: "..." }
-								localStorage.setItem(
-									"token",
-									response.data.token
-								);
-								console.log(localStorage.getItem("token"));
-							});
+						const token = await signUp(values, setSubmitting);
+						await getChannels(token);
+                        await getMessages(token);
 					}
 				}}
 			>

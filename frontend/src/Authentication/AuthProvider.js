@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useLayoutEffect, useContext } from "react";
 import AuthContext from "./AuthContext.js";
 
 const AuthProvider = ({ children }) => {
+	// console.log(localStorage.getItem('token'));
+
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
 
 	function login() {
@@ -9,8 +11,15 @@ const AuthProvider = ({ children }) => {
 	}
 
 	function logout() {
+		localStorage.removeItem("token");
 		setIsAuthenticated(false);
 	}
+
+	useLayoutEffect(() => {
+		if (!!localStorage.getItem("token")) {
+			setIsAuthenticated(true);
+		}
+	}, []);
 
 	return (
 		<AuthContext.Provider value={{ login, logout, isAuthenticated }}>
