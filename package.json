@@ -12,7 +12,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@hexlet/chat-server": "^2.0.3"
+    "@hexlet/chat-server": "^2.0.3",
+    "axios": "^1.7.2"
   },
   "devDependencies": {
     "@babel/plugin-transform-private-property-in-object": "^7.24.7"

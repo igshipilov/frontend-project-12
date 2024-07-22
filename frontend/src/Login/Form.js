@@ -5,6 +5,8 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 
 import { useNavigate } from "react-router-dom";
 
+import axios from "axios";
+
 const FormikForm = () => {
 	const authContext = useContext(AuthContext);
 	const navigate = useNavigate();
@@ -33,6 +35,9 @@ const FormikForm = () => {
 						setSubmitting(false);
 						navigate("/");
 					}, 400);
+                    axios.post('/api/v1/signup', { username: 'newuser', password: '123456' }).then((response) => {
+                        console.log(response.data); // => { token: ..., username: 'newuser' }
+                      });
 				}}
 			>
 				{({ isSubmitting }) => (
