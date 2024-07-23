@@ -36,3 +36,20 @@ body {
     transform: rotate(360deg);
   }
 } */
+
+.container {
+	display: flex;
+	margin: 0 auto;
+	width: 80%;
+	background-color: aliceblue;
+}
+
+.channels-bar {
+	display: flex;
+	flex-direction: column;
+}
+
+.messages-container {
+	display: flex;
+	flex-direction: column;
+}

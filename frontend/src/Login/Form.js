@@ -1,6 +1,10 @@
 import { useContext } from "react";
 import AuthContext from "../Authentication/AuthContext.js";
 
+import store from "../store.js";
+import { channelAdded } from "../features/channelsSlice.js";
+import { messageAdded } from "../features/messagesSlice.js";
+
 import { Formik, Form, Field, ErrorMessage } from "formik";
 
 import { useNavigate } from "react-router-dom";
@@ -21,12 +25,12 @@ const FormikForm = () => {
 		setSubmitting(false);
 		navigate("/");
 
-		console.log("response.data: ", response.data); // => { token: "...", username: "..." }
+		// console.log("response.data: ", response.data); // => { token: "...", username: "..." }
 
 		const token = response.data.token;
 		localStorage.setItem("token", token);
 
-		console.log("!!!!!!!! signedUp succesfully");
+		// console.log("!!!!!!!! signedUp succesfully");
 
 		return token;
 	}
@@ -38,21 +42,20 @@ const FormikForm = () => {
 			},
 		});
 
-		console.log(response.data); // =>[{ id: '1', name: 'general', removable: false }, ...]
+		console.log("Form.js → channels: ", response.data); // =>[{ id: '1', name: 'general', removable: false }, ...]
 		return response.data;
 	}
 
-    async function getMessages(token) {
+	async function getMessages(token) {
 		const response = await axios.get("/api/v1/messages", {
 			headers: {
 				Authorization: `Bearer ${token}`,
 			},
 		});
 
-		console.log(response.data);
+		// console.log("messages: ", response.data);
 		return response.data;
 	}
-
 
 	return (
 		<div>
@@ -78,8 +81,16 @@ const FormikForm = () => {
 						navigate("/");
 					} else {
 						const token = await signUp(values, setSubmitting);
-						await getChannels(token);
-                        await getMessages(token);
+						const channels = await getChannels(token);
+						const messages = await getMessages(token);
+
+						channels.map((channel) =>
+							store.dispatch(channelAdded(channel))
+						);
+                        messages.map((message) =>
+							store.dispatch(messageAdded(message))
+						);
+						// console.log(store.getState());
 					}
 				}}
 			>
