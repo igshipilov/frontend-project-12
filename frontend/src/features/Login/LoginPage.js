@@ -1,11 +1,12 @@
 import "./Login.css";
 
 import { useContext } from "react";
-import AuthContext from "../Authentication/AuthContext.js";
+import AuthContext from "../../Authentication/AuthContext.js";
 
 import { Link } from "react-router-dom";
 
-import Form from "./Form.js";
+// import FormRegistration from "../SignUp/FormSignUp.js";
+import FormLogin from "./FormLogin.js";
 
 function FormOrText() {
 	const authContext = useContext(AuthContext);
@@ -15,7 +16,7 @@ function FormOrText() {
 			{authContext.isAuthenticated ? (
 				<h1 className="text-highlight">You logged IN</h1>
 			) : (
-				<Form />
+				<FormLogin />
 			)}
 		</>
 	);

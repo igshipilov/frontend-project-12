@@ -1,10 +1,18 @@
 import { useContext, useState, useEffect, useLayoutEffect } from "react";
+import { createSlice } from "@reduxjs/toolkit";
+
+import { channelAdded } from "./features/slices/channelsSlice.js";
+import { messageAdded } from "./features/slices/messagesSlice.js";
+
+import { useGetChannelsQuery } from "./features/RTKQuery/channelsApi.js";
+
 import store from "./store.js";
 
-import logo from "./logo.svg";
+// import logo from "./logo.svg";
 import "./App.css";
 
-import LoginPage from "./Login/Login.js";
+import LoginPage from "./features/Login/LoginPage.js";
+import FormSignUp from "./features/SignUp/FormSignUp.js"
 import ErrorPage from "./ErrorPage/ErrorPage.js";
 
 import { BrowserRouter, Link, Navigate, Routes, Route } from "react-router-dom";
@@ -12,23 +20,52 @@ import { BrowserRouter, Link, Navigate, Routes, Route } from "react-router-dom";
 import AuthProvider from "./Authentication/AuthProvider.js";
 import AuthContext from "./Authentication/AuthContext.js";
 
+import axios from "axios";
+
 function MainPage() {
-	let channelsNamesList;
-	useEffect(() => {
-		function getChannelsList() {
-			const state = store.getState();
-			const channels = state.channels;
-			const names = channels.ids.map((id) => channels.entities[id].name);
-            
-			console.log("App → channels: ", channels);
-			console.log("App → names: ", names);
+	// let channelsNamesList = ["hey"];
 
-            return names;
-		}
+	// async function getChannels(token) {
+	// 	const response = await axios.get("/api/v1/channels", {
+	// 		headers: {
+	// 			Authorization: `Bearer ${token}`,
+	// 		},
+	// 	});
+	// 	// console.log("channels: ", response.data); // =>[{ id: '1', name: 'general', removable: false }, ...]
+	// 	return response.data;
+	// }
 
-		channelsNamesList = getChannelsList();
-        console.log('channelsNamesList: ', channelsNamesList);
-	}, []);
+	// async function getChannelsList() {
+	// 	const state = store.getState();
+	// 	const token = state.auth.token;
+
+	// 	const channels = await getChannels(token);
+	// 	// const messages = await getMessages(token);
+	// 	console.log("channels: ", channels);
+
+	// 	// channels.map((channel) =>
+	// 	//     store.dispatch(channelAdded(channel))
+	// 	// );
+	// 	// messages.map((message) =>
+	// 	//     store.dispatch(messageAdded(message))
+	// 	// );
+
+	// 	// const channels = state.channels;
+	// 	const names = channels.map(() => channels.name); // FIXME вроде бы здесь как-то не так отрабатывает... см. логи
+
+	// 	// console.log("App → channels: ", channels);
+	// 	// console.log("App → names: ", names);
+	// 	console.log("state: ", state);
+
+	// 	return names;
+	// }
+
+	// channelsNamesList = getChannelsList();
+	// console.log('channelsNamesList: ', channelsNamesList);
+
+    // const { data, error, isLoading, refetch } = useGetChannelsQuery();
+    // console.log('data: ', data);
+
 
 	return (
 		<>
@@ -49,7 +86,7 @@ function MainPage() {
 						<ul id="channels-box">
 							{/* {["one", "two"]} */}
 							{/* {[<li>one</li>, <li>two</li>]} */}
-							{channelsNamesList}
+							{/* {channelsNamesList} */}
 						</ul>
 					</div>
 					<div className="messages-container">
@@ -117,6 +154,7 @@ function App() {
 					/> */}
 					<Route path="/404" element={<ErrorPage />} />
 					<Route path="/login" element={<LoginPage />} />
+                    <Route path="/signup" element={<FormSignUp />} />
 				</Routes>
 			</BrowserRouter>
 			{/* <button type="button" onClick={() => myAddUser()}>testing Add User</button> */}

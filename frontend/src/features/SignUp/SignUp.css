@@ -1,0 +1,32 @@
+.title {
+	color: rgb(0, 59, 122);
+	background-color: rgb(0, 140, 255);
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+	font-size: 2rem;
+}
+
+.input {
+    font-size: 2rem;
+    height: 2.5rem;
+}
+
+.error-message {
+	color: rgb(255, 222, 57);
+}
+
+.button-submit {
+    border: 0;
+}
+
+.text-highlight {
+    font-size: 5rem;
+    color: yellowgreen;
+}
+
+.red {
+    color: rgb(255, 101, 101);
+}
