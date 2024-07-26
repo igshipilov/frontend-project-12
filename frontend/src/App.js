@@ -1,10 +1,12 @@
+import "bootstrap/dist/css/bootstrap.css";
+
 import { useContext, useState, useEffect, useLayoutEffect } from "react";
 import { createSlice } from "@reduxjs/toolkit";
 
 import { channelAdded } from "./features/slices/channelsSlice.js";
 import { messageAdded } from "./features/slices/messagesSlice.js";
 
-import { useGetChannelsQuery } from "./features/RTKQuery/channelsApi.js";
+import { useGetChannelsQuery } from "./features/RTKQuery/channelsApi.js"; // 🟡🟡🟡 РАСКОММЕНТЬ
 
 import store from "./store.js";
 
@@ -12,8 +14,9 @@ import store from "./store.js";
 import "./App.css";
 
 import LoginPage from "./features/Login/LoginPage.js";
-import FormSignUp from "./features/SignUp/FormSignUp.js"
+import FormSignUp from "./features/SignUp/FormSignUp.js";
 import ErrorPage from "./ErrorPage/ErrorPage.js";
+import FormExample from "./features/SignUp/FormExample.js";
 
 import { BrowserRouter, Link, Navigate, Routes, Route } from "react-router-dom";
 
@@ -23,16 +26,20 @@ import AuthContext from "./Authentication/AuthContext.js";
 import axios from "axios";
 
 function MainPage() {
-	// let channelsNamesList = ["hey"];
+	let channelsNamesList = ["hey"];
 
 	// async function getChannels(token) {
-	// 	const response = await axios.get("/api/v1/channels", {
-	// 		headers: {
-	// 			Authorization: `Bearer ${token}`,
-	// 		},
-	// 	});
-	// 	// console.log("channels: ", response.data); // =>[{ id: '1', name: 'general', removable: false }, ...]
-	// 	return response.data;
+	// 	try {
+	// 		const response = await axios.get("/api/v1/channels", {
+	// 			headers: {
+	// 				Authorization: `Bearer ${token}`,
+	// 			},
+	// 		});
+	// 		console.log("channels: ", response.data); // =>[{ id: '1', name: 'general', removable: false }, ...]
+	// 		return response.data;
+	// 	} catch (e) {
+	// 		console.log("getChannels error: ", e);
+	// 	}
 	// }
 
 	// async function getChannelsList() {
@@ -61,11 +68,11 @@ function MainPage() {
 	// }
 
 	// channelsNamesList = getChannelsList();
-	// console.log('channelsNamesList: ', channelsNamesList);
+	// console.log("channelsNamesList: ", channelsNamesList);
 
-    // const { data, error, isLoading, refetch } = useGetChannelsQuery();
-    // console.log('data: ', data);
-
+	// 🟡🟡🟡 РАСКОММЕНТЬ
+	const { data, error, isLoading, refetch } = useGetChannelsQuery();
+	console.log('data: ', data);
 
 	return (
 		<>
@@ -154,7 +161,8 @@ function App() {
 					/> */}
 					<Route path="/404" element={<ErrorPage />} />
 					<Route path="/login" element={<LoginPage />} />
-                    <Route path="/signup" element={<FormSignUp />} />
+					<Route path="/signup" element={<FormSignUp />} />
+					<Route path="/example" element={<FormExample />} />
 				</Routes>
 			</BrowserRouter>
 			{/* <button type="button" onClick={() => myAddUser()}>testing Add User</button> */}

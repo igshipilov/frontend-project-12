@@ -1,3 +1,5 @@
+import "bootstrap/dist/css/bootstrap.css";
+
 import { useContext, useState } from "react";
 import { createSlice } from "@reduxjs/toolkit";
 import AuthContext from "../../Authentication/AuthContext.js";
@@ -8,12 +10,14 @@ import { channelAdded } from "../slices/channelsSlice.js";
 import { messageAdded } from "../slices/messagesSlice.js";
 import { setCredentials } from "../auth/authSlice.js";
 
-import { Formik, Form, Field, ErrorMessage } from "formik";
-
 import { useNavigate } from "react-router-dom";
 
 import axios from "axios";
 
+// import { Formik, Form, Field, ErrorMessage } from "formik";
+import { Formik } from "formik";
+
+import { Button, Col, Form, InputGroup, Row } from "react-bootstrap";
 import * as yup from "yup";
 
 const FormSignUp = () => {
@@ -25,12 +29,12 @@ const FormSignUp = () => {
 	async function signUp(values, setSubmitting) {
 		try {
 			const response = await axios.post("/api/v1/signup", {
-				username: values.email,
+				username: values.username,
 				password: values.password,
 			});
 
 			authContext.login();
-			setSubmitting(false);
+			// setSubmitting(false);
 
 			console.log("response.data: ", response.data); // => { token: "...", username: "..." }
 
@@ -71,7 +75,7 @@ const FormSignUp = () => {
 	}
 
 	const validationSchema = yup.object({
-		email: yup.string().email(),
+		username: yup.string().required(),
 		password: yup
 			.string()
 			.required("Password is required")
@@ -82,68 +86,115 @@ const FormSignUp = () => {
 			.oneOf([yup.ref("password")], "Passwords must match"),
 	});
 
-	const message = (msg) => <div>{userExists ? "ALREADY EXISTS" : msg}</div>;
-
 	return (
-		<div>
-			<h1>Type in email and password</h1>
-			<Formik
-				initialValues={{ email: "", password: "" }}
-				validationSchema={validationSchema}
-				onSubmit={async (values, { setSubmitting }) => {
-					await signUp(values, setSubmitting);
-				}}
-			>
-				{({ isSubmitting }) => (
-					<Form className="form">
-						<div className="email">
-							<Field
-								type="email"
-								name="email"
-								className="input"
-							/>
-							<ErrorMessage
-								name="email"
-								component="div"
-								className="error-message"
-								render={(msg) => message(msg)}
-							/>
-						</div>
-						<div className="password">
-							<Field
-								type="password"
-								name="password"
-								className="input"
-							/>
-							<ErrorMessage
-								name="password"
-								component="div"
-								className="error-message"
-							/>
-						</div>
-						<div className="confirmpassword">
-							<Field
-								type="password"
-								name="confirmpassword"
-								className="input"
-							/>
-							<ErrorMessage
-								name="confirmpassword"
-								component="div"
-								className="error-message"
-							/>
-						</div>
-						<button
-							type="submit"
-							disabled={isSubmitting}
-							className="button-submit"
-						>
-							Зарегистрироваться
-						</button>
+		<Formik
+			validationSchema={validationSchema}
+			// onSubmit={(values) => console.log(values)}
+			onSubmit={(values) => signUp(values)}
+			initialValues={{
+				username: "",
+				password: "",
+				confirmpassword: "",
+			}}
+		>
+			{({ handleSubmit, handleChange, values, touched, errors }) => (
+				<>
+					<a href="#" onClick={() => navigate("/login")}>
+						Войти
+					</a>
+					<Form
+						noValidate
+						onSubmit={handleSubmit}
+						className="bg-dark"
+					>
+						<Row className="mb-3">
+							<Form.Group
+								as={Col}
+								md="4"
+								controlId="validationFormikUsername"
+							>
+								<Form.Label>username</Form.Label>
+								<InputGroup hasValidation>
+									<Form.Control
+										type="text"
+										placeholder="username"
+										autoFocus
+										aria-describedby="inputGroupPrepend"
+										name="username"
+										value={values.username}
+										onChange={handleChange}
+										isInvalid={
+											!!errors.username || userExists
+										}
+									/>
+									<Form.Control.Feedback
+										type="invalid"
+										tooltip
+									>
+										{errors.username}
+										{!errors.username &&
+											userExists &&
+											"This User Already Exists"}
+									</Form.Control.Feedback>
+								</InputGroup>
+							</Form.Group>
+
+							<Form.Group
+								as={Col}
+								md="4"
+								controlId="validationFormikPasword"
+							>
+								<Form.Label>password</Form.Label>
+								<InputGroup hasValidation>
+									<Form.Control
+										type="password"
+										placeholder="password"
+										aria-describedby="inputGroupPrepend"
+										name="password"
+										value={values.password}
+										onChange={handleChange}
+										isInvalid={!!errors.password}
+									/>
+									<Form.Control.Feedback
+										type="invalid"
+										tooltip
+									>
+										{errors.password}
+									</Form.Control.Feedback>
+								</InputGroup>
+							</Form.Group>
+
+							<Form.Group
+								as={Col}
+								md="4"
+								controlId="validationFormikConfirmpassword"
+							>
+								<Form.Label>confirmpassword</Form.Label>
+								<InputGroup hasValidation>
+									<Form.Control
+										type="password"
+										placeholder="confirm password"
+										aria-describedby="inputGroupPrepend"
+										name="confirmpassword"
+										value={values.confirmpassword}
+										onChange={handleChange}
+										isInvalid={!!errors.confirmpassword}
+									/>
+									<Form.Control.Feedback
+										type="invalid"
+										tooltip
+									>
+										{errors.confirmpassword}
+									</Form.Control.Feedback>
+								</InputGroup>
+							</Form.Group>
+						</Row>
+
+						<Button type="submit">Зарегистрироваться</Button>
 					</Form>
-				)}
-			</Formik>
-		</div>
+				</>
+			)}
+		</Formik>
 	);
 };
 

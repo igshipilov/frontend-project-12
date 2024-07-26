@@ -14,8 +14,6 @@
   "dependencies": {
     "@hexlet/chat-server": "^2.0.3",
     "axios": "^1.7.2",
-    "bootstrap": "^5.3.3",
-    "react-bootstrap": "^2.10.4",
     "yup": "^0.28.5"
   },
   "devDependencies": {
