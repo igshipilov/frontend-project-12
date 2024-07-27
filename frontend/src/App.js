@@ -3,7 +3,7 @@ import "bootstrap/dist/css/bootstrap.css";
 import { useContext, useState, useEffect, useLayoutEffect } from "react";
 import { createSlice } from "@reduxjs/toolkit";
 
-import { channelAdded } from "./features/slices/channelsSlice.js";
+import { channelsAdded } from "./features/slices/channelsSlice.js";
 import { messageAdded } from "./features/slices/messagesSlice.js";
 
 import { useGetChannelsQuery } from "./features/RTKQuery/channelsApi.js"; // 🟡🟡🟡 РАСКОММЕНТЬ
@@ -27,6 +27,23 @@ import axios from "axios";
 
 function MainPage() {
 	let channelsNamesList = ["hey"];
+	// console.log("MainPage -- store.getState():", store.getState());
+	// console.log(
+	// 	'MainPage -- localStorage.getItem("token"):',
+	// 	localStorage.getItem("token")
+	// );
+
+	const token = localStorage.getItem("token");
+
+	// async function getChannels(token) {
+	// 	const response = await axios.get("/api/v1/channels", {
+	// 		headers: {
+	// 			Authorization: `Bearer ${token}`,
+	// 		},
+	// 	});
+	// 	// console.log("Form.js → channels: ", response.data); // =>[{ id: '1', name: 'general', removable: false }, ...]
+	// 	return response.data;
+	// }
 
 	// async function getChannels(token) {
 	// 	try {
@@ -41,6 +58,39 @@ function MainPage() {
 	// 		console.log("getChannels error: ", e);
 	// 	}
 	// }
+
+	// getChannels(token);
+
+	// -----------------------------------
+	// axios
+	// 	.get("/api/v1/channels", {
+	// 		headers: {
+	// 			Authorization: `Bearer ${token}`,
+	// 		},
+	// 	})
+	// 	.then((response) => {
+	// 		console.log("channels: ", response.data);
+
+	// 		store.dispatch(channelsAdded(response.data));
+	// 		console.log(
+	// 			"store after channels store dispatch:",
+	// 			store.getState()
+	// 		);
+
+	// 		const channelsIds = store.getState().channels.ids;
+	// 		const channelsEntities = store.getState().channels.entities;
+
+	// 		const channels = channelsIds.map((id) => channelsEntities[id]);
+	// 		console.log("channels: ", channels);
+
+	// 		channelsNamesList = channels.map(({ name }) => name);
+	//         console.log('channelsNamesList: ', channelsNamesList);
+	// 	})
+	// 	.catch((e) => {
+	// 		console.log("getChannels error: ", e);
+	// 		throw new Error("Error while getting channels:", e);
+	// 	});
+	// -----------------------------------
 
 	// async function getChannelsList() {
 	// 	const state = store.getState();
@@ -72,7 +122,14 @@ function MainPage() {
 
 	// 🟡🟡🟡 РАСКОММЕНТЬ
 	const { data, error, isLoading, refetch } = useGetChannelsQuery();
-	console.log('data: ', data);
+	// console.log("data: ", data);
+    console.log('isLoading:', isLoading);
+
+	// const names = data.map(({ name }) => name);
+    const names = data.map(({ name }, id) => <li key={id}>{name}</li>);
+	// console.log("names: ", names);
+
+	channelsNamesList = names;
 
 	return (
 		<>
@@ -80,8 +137,6 @@ function MainPage() {
 				<Link to="/login" className="App-link">
 					Login
 				</Link>
-
-				{/* <img src={logo} className="App-logo" alt="logo" /> */}
 			</header>
 			<div className="main">
 				<div className="container">
@@ -93,7 +148,7 @@ function MainPage() {
 						<ul id="channels-box">
 							{/* {["one", "two"]} */}
 							{/* {[<li>one</li>, <li>two</li>]} */}
-							{/* {channelsNamesList} */}
+							{channelsNamesList}
 						</ul>
 					</div>
 					<div className="messages-container">
@@ -130,35 +185,23 @@ function PrivateRoute({ children }) {
 	return children;
 }
 
-// DELETME: testing func
-// function myAddUser() {
-//     const user = { id: 0, name: "Ivan", comments: [] };
-
-//     store.dispatch(userAdded(user));
-//     const selectUsers = (state) => state.users;
-
-//     const users = selectUsers(store.getState());
-
-//     console.log(store.getState());
-// };
-
 function App() {
+	useEffect(() => {
+		// console.log("App.js → localStorage: ", localStorage);
+	}, []);
+
 	return (
 		<AuthProvider>
 			<BrowserRouter>
 				<Routes>
-					{/* DELETME когда закончишь CSS */}
-					<Route path="*" element={<MainPage />}></Route>
-
-					{/* РАСКОММЕНТЬ, когда закончишь CSS */}
-					{/* <Route
+					<Route
 						path="*"
 						element={
 							<PrivateRoute>
 								<MainPage />
 							</PrivateRoute>
 						}
-					/> */}
+					/>
 					<Route path="/404" element={<ErrorPage />} />
 					<Route path="/login" element={<LoginPage />} />
 					<Route path="/signup" element={<FormSignUp />} />

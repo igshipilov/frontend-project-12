@@ -29,7 +29,7 @@ function LogoutButtonOrText() {
 		<>
 			<h1 className="text-highlight red">
 				{authContext.isAuthenticated ? (
-					<button onClick={authContext.logout} type="button">
+					<button className="btn btn-secondary" onClick={authContext.logout} type="button">
 						Logout
 					</button>
 				) : (

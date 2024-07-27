@@ -4,3 +4,6 @@ build:
 
 start-server:
 	cd frontend && npm run build && npx start-server
+
+production:
+	cd frontend && npm start

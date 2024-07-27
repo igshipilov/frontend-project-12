@@ -44,7 +44,7 @@ const FormSignUp = () => {
 			store.dispatch(setCredentials(response.data));
 			localStorage.setItem("token", token);
 
-			console.log("store after token dispatch: ", store.getState());
+			console.log("store after user-and-token dispatch: ", store.getState());
 			navigate("/");
 			return token;
 		} catch (e) {
