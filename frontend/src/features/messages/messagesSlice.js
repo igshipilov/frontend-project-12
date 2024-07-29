@@ -6,7 +6,7 @@ const messagesSlice = createSlice({
 	name: "messages",
 	initialState: messagesAdapter.getInitialState(),
 	reducers: {
-		channelAdded: messagesAdapter.addOne,
+		message: messagesAdapter.addOne,
 	},
 });
 

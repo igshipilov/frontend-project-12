@@ -1,77 +1,37 @@
-import "bootstrap/dist/css/bootstrap.css";
+import React, { useState } from "react";
+import { useSignupMutation } from "../api/api.js";
+import { setCredentials } from "../features/auth/authSlice.js";
+import { useDispatch } from "react-redux";
+import { useNavigate, Link } from "react-router-dom";
 
-import { useContext, useState } from "react";
-import { createSlice } from "@reduxjs/toolkit";
-import AuthContext from "../../Authentication/AuthContext.js";
-
-import store from "../../store.js";
-
-import { channelAdded } from "../slices/channelsSlice.js";
-import { messageAdded } from "../slices/messagesSlice.js";
-import { setCredentials } from "../auth/authSlice.js";
-
-import { useNavigate } from "react-router-dom";
-
-import axios from "axios";
-
-// import { Formik, Form, Field, ErrorMessage } from "formik";
 import { Formik } from "formik";
-
 import { Button, Col, Form, InputGroup, Row } from "react-bootstrap";
 import * as yup from "yup";
 
-const FormSignUp = () => {
+function SignUp() {
 	const [userExists, setUserExists] = useState(false);
+	const [signup, { isLoading }] = useSignupMutation();
 
-	const authContext = useContext(AuthContext);
+	const dispatch = useDispatch();
 	const navigate = useNavigate();
 
-	async function signUp(values, setSubmitting) {
+	async function handleSignup({ username, password }) {
 		try {
-			const response = await axios.post("/api/v1/signup", {
-				username: values.username,
-				password: values.password,
-			});
-
-			authContext.login();
-			// setSubmitting(false);
-
-			console.log("response.data: ", response.data); // => { token: "...", username: "..." }
-
-			// const user = response.data.username;
-			const token = response.data.token;
-
-			store.dispatch(setCredentials(response.data));
-			localStorage.setItem("token", token);
-
-			console.log("store after user-and-token dispatch: ", store.getState());
+			const userData = await signup({ username, password }).unwrap(); // POST-запрос на сервер, в ответ получаем: { token, username }
+			dispatch(setCredentials(userData)); // сохраняем в store объект: { user, token }
 			navigate("/");
-			return token;
+			localStorage.setItem("token", userData.token);
 		} catch (e) {
-			console.log("signUP error: ", e);
-			console.log("e.response.status: ", e.response.status);
-			setUserExists(true);
+			const { statusCode } = e.data;
+			switch (statusCode) {
+				case 409:
+					setUserExists(true);
+					console.log("This User Already Exists:", e);
+					return;
+				default:
+					throw new Error("Failed to register:", e);
+			}
 		}
-	}
-
-	async function getChannels(token) {
-		const response = await axios.get("/api/v1/channels", {
-			headers: {
-				Authorization: `Bearer ${token}`,
-			},
-		});
-		// console.log("Form.js → channels: ", response.data); // =>[{ id: '1', name: 'general', removable: false }, ...]
-		return response.data;
-	}
-
-	async function getMessages(token) {
-		const response = await axios.get("/api/v1/messages", {
-			headers: {
-				Authorization: `Bearer ${token}`,
-			},
-		});
-		// console.log("messages: ", response.data);
-		return response.data;
 	}
 
 	const validationSchema = yup.object({
@@ -90,17 +50,19 @@ const FormSignUp = () => {
 		<Formik
 			validationSchema={validationSchema}
 			// onSubmit={(values) => console.log(values)}
-			onSubmit={(values) => signUp(values)}
+			onSubmit={(values) => {
+				handleSignup(values);
+			}}
 			initialValues={{
 				username: "",
 				password: "",
 				confirmpassword: "",
 			}}
 		>
-			{({ handleSubmit, handleChange, values, touched, errors }) => (
+			{({ handleSubmit, handleChange, values, errors }) => (
 				<>
 					<a href="#" onClick={() => navigate("/login")}>
-						Войти
+						Вход
 					</a>
 					<Form
 						noValidate
@@ -190,12 +152,42 @@ const FormSignUp = () => {
 							</Form.Group>
 						</Row>
 
-						<Button type="submit">Зарегистрироваться</Button>
+						<Button type="submit" disabled={isLoading}>
+							{isLoading
+								? "Регистрируемся..."
+								: "Зарегистрироваться"}
+						</Button>
 					</Form>
 				</>
 			)}
 		</Formik>
+		// <form onSubmit={handleSubmit}>
+		// 	<div>
+		// 		<input
+		// 			type="text"
+		// 			value={username}
+		// 			onChange={(e) => setUsername(e.target.value)}
+		// 			placeholder="username"
+		// 		></input>
+		// 	</div>
+		// 	<div>
+		// 		<input
+		// 			type="password"
+		// 			value={password}
+		// 			onChange={(e) => setPassword(e.target.value)}
+		// 			placeholder="password"
+		// 		></input>
+		// 	</div>
+		// 	<button type="submit" disabled={isLoading}>
+		// 		{isLoading ? "Регистрируемся..." : "Зарегистрироваться"}
+		// 	</button>
+		// 	<div>
+		// 		<Link to="/login" className="App-link">
+		// 			Авторизоваться
+		// 		</Link>
+		// 	</div>
+		// </form>
 	);
-};
+}
 
-export default FormSignUp;
+export default SignUp;

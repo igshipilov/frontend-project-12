@@ -6,9 +6,9 @@ const channelsSlice = createSlice({
 	name: "channels",
 	initialState: channelsAdapter.getInitialState(),
 	reducers: {
-		channelsAdded: channelsAdapter.addMany,
+		channelAdded: channelsAdapter.addOne,
 	},
 });
 
-export const { channelsAdded } = channelsSlice.actions;
+export const { channelAdded } = channelsSlice.actions;
 export default channelsSlice.reducer;
