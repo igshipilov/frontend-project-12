@@ -11,6 +11,8 @@ import { useAddChannelMutation, useAddMessageMutation } from "../api/api.js";
 import { channelAdded } from "../features/channels/channelsSlice.js";
 import { setMessage } from "../features/messages/messagesSlice.js";
 
+import { socket } from "../socket.js";
+
 function Chat() {
 	const [userMessage, setUserMessage] = useState("");
 
@@ -27,21 +29,29 @@ function Chat() {
 
 		console.log("userMessage", userMessage);
 		try {
-			// addMessage – это RTK Query, post-запрос через api сервера
+			// addMessage – это RTK Query post-запрос через api сервера
 			const response = await addMessage({
 				body: userMessage,
 				channelId: 1,
 				username: "admin",
 			}).unwrap();
 
-			// setMessage – это мы добавляем его в store
-			dispatch(setMessage(response));
-
 			console.log("addMessage → response: ", response);
 		} catch (error) {
 			throw new Error(`submitMessage error: ${error}`);
 		}
 	}
+
+	useEffect(() => {
+		socket.on("newMessage", (payload) => {
+			console.log("socken.on newMessage → payload: ", payload);
+			dispatch(setMessage(payload)); // setMessage – добавляем сообщение в store
+		});
+
+		return () => {
+			socket.off("newMessage");
+		};
+	}, []);
 
 	// FIXME
 	async function handleAddChannel() {

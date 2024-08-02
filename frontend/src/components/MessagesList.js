@@ -10,14 +10,11 @@ import {
 
 import { setMessage, setMessages } from "../features/messages/messagesSlice.js";
 
-import { socket } from "../socket.js";
-
-function MessagesList(list) {
+function MessagesList() {
 	const { data: messages, isLoading, error, refetch } = useGetMessagesQuery();
-	// const [removeMessage] = useRemoveMessageMutation(); // DELETME
+	// const [removeMessage] = useRemoveMessageMutation(); // DELETE
 
 	const dispatch = useDispatch();
-	// const storeMessages = useSelector((state) => state.messages);
 	const filteredMessages = useSelector((state) => {
 		// return state.messages;
 		const { ids, entities } = state.messages;
@@ -30,7 +27,7 @@ function MessagesList(list) {
 		return fin;
 	});
 
-	// FIXME or DELETME -- это я пытался удалить все сообщения, потому что криво насохранял:
+	// FIXME or DELETE -- это я пытался удалить все сообщения, потому что криво насохранял:
 	// не у всех есть typeof body === "string"
 	// async function removeAllMessages() {
 	// 	// messages.map(async ({ id }) => await removeMessage(id));
@@ -66,8 +63,8 @@ function MessagesList(list) {
 		return <div>Ошибка загрузки сообщений! см. логи</div>;
 	}
 
-	console.log("MessagesList.js → messages:", messages);
-	console.log("filteredMessages: ", filteredMessages);
+	// console.log("MessagesList.js → messages:", messages);
+	// console.log("filteredMessages: ", filteredMessages);
 
 	return (
 		<div>
