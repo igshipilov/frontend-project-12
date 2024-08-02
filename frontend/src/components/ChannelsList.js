@@ -6,6 +6,7 @@ import { useGetChannelsQuery } from "../api/api.js";
 function ChannelsList() {
 	// const { ids, entities } = customChannels;
 	const { data: channels, isLoading, error } = useGetChannelsQuery();
+    // console.log('useGetChannelsQuery(): ', useGetChannelsQuery())
 
 	if (isLoading) return <div>Загружаем каналы...</div>;
 	if (error) {

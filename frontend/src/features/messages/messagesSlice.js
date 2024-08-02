@@ -6,9 +6,10 @@ const messagesSlice = createSlice({
 	name: "messages",
 	initialState: messagesAdapter.getInitialState(),
 	reducers: {
-		message: messagesAdapter.addOne,
+		setMessage: messagesAdapter.addOne,
+        setMessages: messagesAdapter.addMany,
 	},
 });
 
-export const { messageAdded } = messagesSlice.actions;
+export const { setMessage, setMessages } = messagesSlice.actions;
 export default messagesSlice.reducer;

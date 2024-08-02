@@ -40,13 +40,30 @@ export const api = createApi({
 				body: channel,
 			}),
 		}),
-        // removeChannel: builder.mutation({
-        //     query: (channel) => ({
-        //         url
-        //     })
-        // }),
+		// removeChannel: builder.mutation({
+		//     query: (channel) => ({
+		//         url
+		//     })
+		// }),
 		getMessages: builder.query({
 			query: () => "/messages",
+			providesTags: ["Messages"],
+		}),
+
+		addMessage: builder.mutation({
+			query: (message) => ({
+				url: "/messages",
+				method: "POST",
+				body: message,
+			}),
+		}),
+		removeMessage: builder.mutation({
+			query: (id) => ({
+				url: `/messages/${id}`,
+				method: "DELETE",
+				body: id,
+			}),
+			invalidatesTags: ["Messages"],
 		}),
 	}),
 });
@@ -54,7 +71,11 @@ export const api = createApi({
 export const {
 	useLoginMutation,
 	useSignupMutation,
+
 	useGetChannelsQuery,
 	useAddChannelMutation,
+
 	useGetMessagesQuery,
+	useAddMessageMutation,
+	useRemoveMessageMutation,
 } = api;
