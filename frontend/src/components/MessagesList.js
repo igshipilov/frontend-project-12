@@ -8,33 +8,33 @@ import {
 	useRemoveMessageMutation,
 } from "../api/api.js";
 
-import { setMessage, setMessages } from "../features/messages/messagesSlice.js";
+import {
+	setMessage,
+	setMessages,
+	selectMessages,
+} from "../features/messages/messagesSlice.js";
 
 function MessagesList() {
-    const currentChannelId = useSelector((state) => state.currentChannelId)
+	const currentChannelId = useSelector((state) => state.currentChannelId);
 
 	const { data: messages, isLoading, error, refetch } = useGetMessagesQuery();
 	// const [removeMessage] = useRemoveMessageMutation(); // это я пытался удалить все сообщения, не сработало
 
-
 	const dispatch = useDispatch();
-	const filteredMessages = useSelector((state) => {
-		// return state.messages;
-		const { ids, entities } = state.messages;
 
-		const filteredIds = ids.filter(
-			(id) => typeof entities[id]?.body === "string"
-		);
+	const myMessages = useSelector(selectMessages);
 
-		const result = filteredIds
-			.map((id) => entities[id])
-			// console.log("result: ", result[0].channelId);
-			.filter(({ channelId }) => channelId === currentChannelId);
+	const filteredMessages = () => {
+		const { ids, entities } = myMessages;
 
-		const fin = result.map(({ body, id }) => <li key={id}>{body}</li>);
+		const listedMessages = ids
+			.map((id) => entities[id]) // получаем объект сообщения
+			.filter(({ channelId }) => channelId === currentChannelId) // оставляем только сообщения, соответствующие текущему каналу
+			.map(({ body }) => body) // вытаскиваем текст сообщения
+			.map((text, id) => <li key={id}>{text}</li>); // "оформляем" в список
 
-		return fin;
-	});
+		return listedMessages;
+	};
 
 	// FIXME or DELETE -- это я пытался удалить все сообщения, потому что криво насохранял:
 	// не у всех есть typeof body === "string"
@@ -72,9 +72,6 @@ function MessagesList() {
 		return <div>Ошибка загрузки сообщений! см. логи</div>;
 	}
 
-	// console.log("MessagesList.js → messages:", messages);
-	// console.log("filteredMessages: ", filteredMessages);
-
 	return (
 		<div>
 			{/* DELETME */}
@@ -82,7 +79,7 @@ function MessagesList() {
 				remove all messages
 			</button> */}
 
-			<ul className="list-unstyled">{filteredMessages}</ul>
+			<ul className="list-unstyled">{filteredMessages()}</ul>
 		</div>
 	);
 }

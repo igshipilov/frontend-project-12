@@ -4,7 +4,7 @@ import React, { useEffect } from "react";
 import { useGetChannelsQuery } from "../api/api.js";
 
 import { useDispatch, useSelector } from "react-redux";
-import { selectChannelById } from "../features/channels/selectCurrentChannelId.js";
+import { getChannelById } from "../features/channels/getCurrentChannelIdSlice.js";
 
 import { channelsAdded } from "../features/channels/channelsSlice.js";
 
@@ -34,7 +34,7 @@ function ChannelsList() {
 				{channels.map(({ id, name }) => (
 					<li
 						key={id}
-						onClick={() => dispatch(selectChannelById(Number(id)))}
+						onClick={() => dispatch(getChannelById(Number(id)))}
 					>
 						{name}
 					</li>

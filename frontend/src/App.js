@@ -17,10 +17,12 @@ import Chat from "./components/Chat.js";
 import SignUp from "./components/SignUp.js";
 import ErrorPage from "./components/ErrorPage.js";
 
+import { selectAuthenticatedUser } from "./features/auth/authSlice.js";
+
 import { socket } from "./socket.js";
 
 function App() {
-	console.log("localStorage: ", localStorage);
+	// console.log("localStorage: ", localStorage);
 
 	const username = localStorage.getItem("username");
 	const token = localStorage.getItem("token");
@@ -29,7 +31,8 @@ function App() {
 
 	dispatch(setCredentials({ username, token }));
 
-	const { user } = useSelector((state) => state.auth);
+	const { user } = useSelector(selectAuthenticatedUser);
+	// console.log("user: ", user);
 
 	useEffect(() => {
 		socket.on("newChannel", (payload) => {
