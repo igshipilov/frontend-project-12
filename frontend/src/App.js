@@ -1,48 +1,3 @@
-// import React, { useState, useEffect } from 'react';
-// import { socket } from './socket';
-// import { ConnectionState } from './components/ConnectionState';
-// import { ConnectionManager } from './components/ConnectionManager';
-// import { Events } from "./components/Events";
-// import { MyForm } from './components/MyForm';
-
-// export default function App() {
-//   const [isConnected, setIsConnected] = useState(socket.connected);
-//   const [fooEvents, setFooEvents] = useState([]);
-
-//   useEffect(() => {
-//     function onConnect() {
-//       setIsConnected(true);
-//     }
-
-//     function onDisconnect() {
-//       setIsConnected(false);
-//     }
-
-//     function onFooEvent(value) {
-//       setFooEvents(previous => [...previous, value]);
-//     }
-
-//     socket.on('connect', onConnect);
-//     socket.on('disconnect', onDisconnect);
-//     socket.on('foo', onFooEvent);
-
-//     return () => {
-//       socket.off('connect', onConnect);
-//       socket.off('disconnect', onDisconnect);
-//       socket.off('foo', onFooEvent);
-//     };
-//   }, []);
-
-//   return (
-//     <div className="App">
-//       <ConnectionState isConnected={ isConnected } />
-//       <Events events={ fooEvents } />
-//       <ConnectionManager />
-//       <MyForm />
-//     </div>
-//   );
-// }
-
 import "bootstrap/dist/css/bootstrap.css";
 
 import React, { useContext, useState, useEffect, useLayoutEffect } from "react";
@@ -62,7 +17,10 @@ import ErrorPage from "./components/ErrorPage.js";
 import { socket } from "./socket.js";
 
 function App() {
+    console.log(localStorage);
+
 	const { user } = useSelector((state) => state.auth);
+
 
 	useEffect(() => {
 		socket.on("newChannel", (payload) => {
@@ -101,7 +59,7 @@ function App() {
 			<BrowserRouter>
 				<Routes>
                     {/* UNCOMMENTME */}
-					{/* <Route
+					<Route
 						path="/login"
 						element={user ? <Navigate to={"/"} /> : <Auth />}
 					/>
@@ -109,10 +67,10 @@ function App() {
 						path="/"
 						element={user ? <Chat /> : <Navigate to={"/login"} />}
 					/>
-					<Route path="*" element={<Navigate to={"/"} />} /> */}
+					<Route path="*" element={<Navigate to={"/"} />} />
                     
                     {/* DELETME */}
-                    <Route path="*" element={<Chat />} />
+                    {/* <Route path="*" element={<Chat />} /> */}
 					
                     <Route path="/signup" element={<SignUp />} />
 					<Route path="/404" element={<ErrorPage />} />

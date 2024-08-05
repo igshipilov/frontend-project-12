@@ -36,7 +36,6 @@ function Auth() {
 
 	return (
 		<Formik
-			// onSubmit={(values) => console.log(values)}
 			onSubmit={(values) => {
 				handleAuth(values);
 			}}
@@ -110,26 +109,6 @@ function Auth() {
 				</>
 			)}
 		</Formik>
-		// <form onSubmit={handleSubmit}>
-		// 	<input
-		// 		type="text"
-		// 		value={username}
-		// 		onChange={(e) => setUsername(e.target.value)}
-		// 		placeholder="username"
-		// 	></input>
-		// 	<input
-		// 		type="password"
-		// 		value={password}
-		// 		onChange={(e) => setPassword(e.target.value)}
-		// 		placeholder="password"
-		// 	></input>
-		// 	<button type="submit" disabled={isLoading}>
-		// 		{isLoading ? "Входим..." : "Войти"}
-		// 	</button>
-		// 	<Link to="/signup" className="App-link">
-		// 		Регистрация
-		// 	</Link>
-		// </form>
 	);
 }
 

@@ -13,34 +13,11 @@ import { setMessage } from "../features/messages/messagesSlice.js";
 
 import { socket } from "../socket.js";
 
+import { Formik } from "formik";
+import { Button, Col, Form, InputGroup, Row } from "react-bootstrap";
+
 function Chat() {
-	const [userMessage, setUserMessage] = useState("");
-
 	const dispatch = useDispatch();
-
-	const [addChannel] = useAddChannelMutation();
-	const [addMessage, { error: addMessageError, isLoading: isAddingMessage }] =
-		useAddMessageMutation();
-
-	const myChannels = useSelector((state) => state.channels);
-
-	async function submitMessage(e) {
-		e.preventDefault();
-
-		console.log("userMessage", userMessage);
-		try {
-			// addMessage – это RTK Query post-запрос через api сервера
-			const response = await addMessage({
-				body: userMessage,
-				channelId: 1,
-				username: "admin",
-			}).unwrap();
-
-			console.log("addMessage → response: ", response);
-		} catch (error) {
-			throw new Error(`submitMessage error: ${error}`);
-		}
-	}
 
 	useEffect(() => {
 		socket.on("newMessage", (payload) => {
@@ -53,62 +30,12 @@ function Chat() {
 		};
 	}, []);
 
-	// FIXME
-	async function handleAddChannel() {
-		try {
-			const response = await addChannel({
-				name: "test",
-			}).unwrap();
-			dispatch(channelAdded(response));
-			console.log("addChannel → response: ", response);
-		} catch (error) {
-			console.log("Adding channel error:", error);
-			throw new Error(error);
-		}
-	}
-
 	return (
 		<>
-			<header className="App-header">
-				<Link to="/login" className="App-link">
-					Login
-				</Link>
-			</header>
 			<div className="main">
 				<div className="container">
-					<aside className="channels-bar">
-						<div className="">
-							<b>Каналы</b>
-							<button type="button" onClick={handleAddChannel}>
-								+
-							</button>
-						</div>
-						<ul id="channels-box">
-							<ChannelsList customChannels={myChannels} />
-						</ul>
-					</aside>
-					<div className="messages-container">
-						<div className="">
-							<div className="messages-head"></div>
-							<div className="messages-box">
-								<MessagesList />
-							</div>
-							<div className="form">
-								<form onSubmit={(e) => submitMessage(e)}>
-									<div className="">
-										<input
-											name="body"
-											placeholder="Введите новое сообщение"
-											onChange={(e) =>
-												setUserMessage(e.target.value)
-											}
-										></input>
-										<button type="submit">Отправить</button>
-									</div>
-								</form>
-							</div>
-						</div>
-					</div>
+					<Channels />
+					<MessagesContainer />
 				</div>
 			</div>
 		</>
@@ -116,3 +43,124 @@ function Chat() {
 }
 
 export default Chat;
+
+function MessagesContainer() {
+	return (
+		<div className="messages-container">
+			<div className="">
+				<div className="messages-head">
+					<h3>Messages Head</h3>
+				</div>
+				<div className="messages-box">
+					<MessagesList />
+				</div>
+				<div className="form">
+					<FormSendMessage />
+				</div>
+			</div>
+		</div>
+	);
+}
+
+function FormSendMessage() {
+	// const [userMessage, setUserMessage] = useState("");
+	const [addMessage, { error: addMessageError, isLoading: isAddingMessage }] =
+		useAddMessageMutation();
+
+    const user = useSelector((state) => state.auth.user);
+
+	async function submitMessage(values) {
+		try {
+			// addMessage – это RTK Query post-запрос через api сервера
+			const response = await addMessage({
+				body: values.message,
+				channelId: 1,
+				username: user,
+			}).unwrap();
+
+			console.log("addMessage → response: ", response);
+		} catch (error) {
+			throw new Error(`submitMessage error: ${error}`);
+		}
+	}
+
+	return (
+		<Formik
+			onSubmit={(values, { resetForm }) => {
+				submitMessage(values);
+                resetForm();
+			}}
+			initialValues={{
+				message: "",
+			}}
+		>
+			{({ handleSubmit, handleChange, values }) => (
+				<>
+					<Form
+						noValidate
+						onSubmit={handleSubmit}
+						className="bg-dark"
+					>
+						<Row className="mb-3">
+							<Form.Group
+								as={Col}
+								md="4"
+								controlId="FormikMessage"
+							>
+								<Form.Label>message</Form.Label>
+								<InputGroup hasValidation>
+									<Form.Control
+										type="text"
+										placeholder="Введите сообщение"
+										autoFocus
+										aria-describedby="inputGroupPrepend"
+										name="message"
+										value={values.message}
+										onChange={handleChange}
+									/>
+								</InputGroup>
+							</Form.Group>
+						</Row>
+
+						<Button type="submit" disabled={isAddingMessage}>
+							{isAddingMessage ? "Отправляем" : "Отправить"}
+						</Button>
+					</Form>
+				</>
+			)}
+		</Formik>
+	);
+}
+
+// FIXME функция добавления канала
+// async function handleAddChannel() {
+// 	const dispatch = useDispatch();
+// 	const [addChannel] = useAddChannelMutation();
+
+// 	try {
+// 		const response = await addChannel({
+// 			name: "test",
+// 		}).unwrap();
+// 		dispatch(channelAdded(response));
+// 		console.log("addChannel → response: ", response);
+// 	} catch (error) {
+// 		console.log("Adding channel error:", error);
+// 		throw new Error(error);
+// 	}
+// }
+
+function Channels() {
+	const myChannels = useSelector((state) => state.channels);
+
+	return (
+		<aside className="channels-bar">
+			<div className="">
+				<h3>Каналы</h3>
+				<button type="button">+</button>
+			</div>
+			<ul id="channels-box">
+				<ChannelsList customChannels={myChannels} />
+			</ul>
+		</aside>
+	);
+}
