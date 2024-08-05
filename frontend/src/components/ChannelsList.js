@@ -1,21 +1,30 @@
 import "bootstrap/dist/css/bootstrap.css";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useGetChannelsQuery } from "../api/api.js";
 
-import { useDispatch } from "react-redux";
-import { selectChannel } from "../features/channels/selectCurrentChannelId.js";
+import { useDispatch, useSelector } from "react-redux";
+import { selectChannelById } from "../features/channels/selectCurrentChannelId.js";
+
+import { channelsAdded } from "../features/channels/channelsSlice.js";
 
 function ChannelsList() {
 	// const { ids, entities } = customChannels;
-	const { data: channels, isLoading, error } = useGetChannelsQuery();
-	// console.log('useGetChannelsQuery(): ', useGetChannelsQuery())
+	const { data: fetchedChannels, isLoading, error } = useGetChannelsQuery();
 
 	const dispatch = useDispatch();
 
+	const channels = fetchedChannels;
+
+	useEffect(() => {
+		if (fetchedChannels) {
+			dispatch(channelsAdded(fetchedChannels));
+		}
+	}, []);
+
 	if (isLoading) return <div>Загружаем каналы...</div>;
 	if (error) {
-		console.log("Ошибка загрузки каналов!", error);
+		console.error("Ошибка загрузки каналов!", error);
 		return <div>Ошибка загрузки каналов! см. логи</div>;
 	}
 
@@ -25,9 +34,7 @@ function ChannelsList() {
 				{channels.map(({ id, name }) => (
 					<li
 						key={id}
-						onClick={() => dispatch(
-							selectChannel({ currentChannelId: Number(id) })
-						)}
+						onClick={() => dispatch(selectChannelById(Number(id)))}
 					>
 						{name}
 					</li>

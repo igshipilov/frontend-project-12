@@ -4,10 +4,9 @@ const selectCurrentChannelId = createSlice({
 	name: "selectCurrentChannelId",
 	initialState: 1,
 	reducers: {
-		selectChannel: (state, action) =>
-			(state = action.payload.currentChannelId),
+		selectChannelById: (state, action) => action.payload,
 	},
 });
 
-export const { selectChannel } = selectCurrentChannelId.actions;
+export const { selectChannelById } = selectCurrentChannelId.actions;
 export default selectCurrentChannelId.reducer;
