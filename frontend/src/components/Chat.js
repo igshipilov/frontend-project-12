@@ -68,13 +68,14 @@ function FormSendMessage() {
 		useAddMessageMutation();
 
     const user = useSelector((state) => state.auth.user);
+    const currentChannelId = useSelector((state) => state.currentChannelId)
 
 	async function submitMessage(values) {
 		try {
 			// addMessage – это RTK Query post-запрос через api сервера
 			const response = await addMessage({
 				body: values.message,
-				channelId: 1,
+				channelId: currentChannelId,
 				username: user,
 			}).unwrap();
 

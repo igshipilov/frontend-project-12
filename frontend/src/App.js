@@ -1,6 +1,9 @@
 import "bootstrap/dist/css/bootstrap.css";
 
 import React, { useContext, useState, useEffect, useLayoutEffect } from "react";
+import { useDispatch } from "react-redux";
+
+import { setCredentials, logout } from "./features/auth/authSlice.js";
 
 import store from "./app/store.js";
 
@@ -17,10 +20,16 @@ import ErrorPage from "./components/ErrorPage.js";
 import { socket } from "./socket.js";
 
 function App() {
-    console.log(localStorage);
+	console.log("localStorage: ", localStorage);
+
+	const username = localStorage.getItem("username");
+	const token = localStorage.getItem("token");
+
+	const dispatch = useDispatch();
+
+	dispatch(setCredentials({ username, token }));
 
 	const { user } = useSelector((state) => state.auth);
-
 
 	useEffect(() => {
 		socket.on("newChannel", (payload) => {
@@ -50,15 +59,23 @@ function App() {
 		}
 	}
 
+	function handleLogout() {
+		dispatch(logout()); // обновляем state → state.user = null и state.token = null
+		localStorage.clear();
+	}
+
 	return (
 		<>
 			<button type="button" onClick={emitChannel}>
 				emit newChannel
 			</button>
+			<button type="button" onClick={handleLogout}>
+				Logout
+			</button>
 
 			<BrowserRouter>
 				<Routes>
-                    {/* UNCOMMENTME */}
+					{/* UNCOMMENTME */}
 					<Route
 						path="/login"
 						element={user ? <Navigate to={"/"} /> : <Auth />}
@@ -68,11 +85,11 @@ function App() {
 						element={user ? <Chat /> : <Navigate to={"/login"} />}
 					/>
 					<Route path="*" element={<Navigate to={"/"} />} />
-                    
-                    {/* DELETME */}
-                    {/* <Route path="*" element={<Chat />} /> */}
-					
-                    <Route path="/signup" element={<SignUp />} />
+
+					{/* DELETME */}
+					{/* <Route path="*" element={<Chat />} /> */}
+
+					<Route path="/signup" element={<SignUp />} />
 					<Route path="/404" element={<ErrorPage />} />
 				</Routes>
 			</BrowserRouter>

@@ -17,9 +17,11 @@ function Auth() {
 	async function handleAuth({ username, password }) {
 		try {
 			const userData = await login({ username, password }).unwrap(); // POST-запрос на сервер, в ответ получаем { token, username }
+			// console.log("userData: ", userData);
 			dispatch(setCredentials(userData)); // сохраняем в store объект { user, token }
 			navigate("/");
 			// console.log('userData: ', userData);
+			localStorage.setItem("username", username);
 			localStorage.setItem("token", userData.token);
 		} catch (e) {
 			const { statusCode } = e.data;
@@ -44,7 +46,7 @@ function Auth() {
 				password: "",
 			}}
 		>
-			{({ handleSubmit, handleChange, values}) => (
+			{({ handleSubmit, handleChange, values }) => (
 				<>
 					<a href="#" onClick={() => navigate("/signup")}>
 						Регистрация

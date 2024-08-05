@@ -11,17 +11,26 @@ import {
 import { setMessage, setMessages } from "../features/messages/messagesSlice.js";
 
 function MessagesList() {
+    const currentChannelId = useSelector((state) => state.currentChannelId)
+
 	const { data: messages, isLoading, error, refetch } = useGetMessagesQuery();
-	// const [removeMessage] = useRemoveMessageMutation(); // DELETE
+	// const [removeMessage] = useRemoveMessageMutation(); // это я пытался удалить все сообщения, не сработало
+
 
 	const dispatch = useDispatch();
 	const filteredMessages = useSelector((state) => {
 		// return state.messages;
 		const { ids, entities } = state.messages;
+
 		const filteredIds = ids.filter(
 			(id) => typeof entities[id]?.body === "string"
 		);
-		const result = filteredIds.map((id) => entities[id]);
+
+		const result = filteredIds
+			.map((id) => entities[id])
+			// console.log("result: ", result[0].channelId);
+			.filter(({ channelId }) => channelId === currentChannelId);
+
 		const fin = result.map(({ body, id }) => <li key={id}>{body}</li>);
 
 		return fin;

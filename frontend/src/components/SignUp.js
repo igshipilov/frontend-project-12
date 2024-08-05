@@ -20,6 +20,7 @@ function SignUp() {
 			const userData = await signup({ username, password }).unwrap(); // POST-запрос на сервер, в ответ получаем: { token, username }
 			dispatch(setCredentials(userData)); // сохраняем в store объект: { user, token }
 			navigate("/");
+			localStorage.setItem("username", username);
 			localStorage.setItem("token", userData.token);
 		} catch (e) {
 			const { statusCode } = e.data;
