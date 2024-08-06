@@ -3,6 +3,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const api = createApi({
 	baseQuery: fetchBaseQuery({
 		baseUrl: "/api/v1",
+		tagTypes: ["Channel", "Message"],
 		prepareHeaders: (headers, { getState }) => {
 			// const token = getState().auth.token;
 			const token = localStorage.getItem("token");
@@ -32,6 +33,7 @@ export const api = createApi({
 		}),
 		getChannels: builder.query({
 			query: () => "/channels",
+			providesTags: ["Channel"],
 		}),
 		addChannel: builder.mutation({
 			query: (channel) => ({
@@ -39,6 +41,7 @@ export const api = createApi({
 				method: "POST",
 				body: channel,
 			}),
+			invalidatesTags: ["Channel"],
 		}),
 		// removeChannel: builder.mutation({
 		//     query: (channel) => ({
@@ -47,7 +50,7 @@ export const api = createApi({
 		// }),
 		getMessages: builder.query({
 			query: () => "/messages",
-			providesTags: ["Messages"],
+			providesTags: ["Message"],
 		}),
 
 		addMessage: builder.mutation({
@@ -56,6 +59,7 @@ export const api = createApi({
 				method: "POST",
 				body: message,
 			}),
+			invalidatesTags: ["Message"],
 		}),
 		removeMessage: builder.mutation({
 			query: (id) => ({
@@ -63,7 +67,7 @@ export const api = createApi({
 				method: "DELETE",
 				body: id,
 			}),
-			invalidatesTags: ["Messages"],
+			invalidatesTags: ["Message"],
 		}),
 	}),
 });

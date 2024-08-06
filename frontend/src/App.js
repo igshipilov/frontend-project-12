@@ -22,8 +22,6 @@ import { selectAuthenticatedUser } from "./features/auth/authSlice.js";
 import { socket } from "./socket.js";
 
 function App() {
-	// console.log("localStorage: ", localStorage);
-
 	const username = localStorage.getItem("username");
 	const token = localStorage.getItem("token");
 
@@ -32,7 +30,6 @@ function App() {
 	dispatch(setCredentials({ username, token }));
 
 	const { user } = useSelector(selectAuthenticatedUser);
-	// console.log("user: ", user);
 
 	useEffect(() => {
 		socket.on("newChannel", (payload) => {
@@ -44,41 +41,21 @@ function App() {
 		};
 	}, []);
 
-	function emitChannel() {
-		if (socket.connected) {
-			socket.emit(
-				"newChannel",
-				{ id: 6, name: "new channel", removable: true },
-				(err) => {
-					if (err) {
-						console.error("Error sending message:", err);
-					} else {
-						console.log("Message sent successfully");
-					}
-				}
-			);
-		} else {
-			console.error("Socket is not connected");
-		}
-	}
-
 	function handleLogout() {
 		dispatch(logout()); // обновляем state → state.user = null и state.token = null
 		localStorage.clear();
 	}
 
+	// const state = useSelector((state) => state);
+
 	return (
 		<>
-			<button type="button" onClick={emitChannel}>
-				emit newChannel
-			</button>
 			<button type="button" onClick={handleLogout}>
 				Logout
 			</button>
 
 			<BrowserRouter>
 				<Routes>
-					{/* UNCOMMENTME */}
 					<Route
 						path="/login"
 						element={user ? <Navigate to={"/"} /> : <Auth />}
@@ -89,9 +66,6 @@ function App() {
 					/>
 					<Route path="*" element={<Navigate to={"/"} />} />
 
-					{/* DELETME */}
-					{/* <Route path="*" element={<Chat />} /> */}
-
 					<Route path="/signup" element={<SignUp />} />
 					<Route path="/404" element={<ErrorPage />} />
 				</Routes>
@@ -99,6 +73,9 @@ function App() {
 			<button type="button" onClick={() => console.log(store.getState())}>
 				store.getState
 			</button>
+			{/* <button type="button" onClick={() => console.log(state.api)}>
+				api
+			</button> */}
 		</>
 	);
 }

@@ -15,17 +15,17 @@ import {
 } from "../features/messages/messagesSlice.js";
 
 function MessagesList() {
-	const currentChannelId = useSelector((state) => state.currentChannelId);
-
-	const { data: messages, isLoading, error, refetch } = useGetMessagesQuery();
+	const { data: fetchedMessages, isLoading, error, refetch } = useGetMessagesQuery();
 	// const [removeMessage] = useRemoveMessageMutation(); // это я пытался удалить все сообщения, не сработало
+    
+	const currentChannelId = useSelector((state) => state.currentChannelId);
 
 	const dispatch = useDispatch();
 
-	const myMessages = useSelector(selectMessages);
+	const messagesState = useSelector(selectMessages);
 
-	const filteredMessages = () => {
-		const { ids, entities } = myMessages;
+	function filteredMessages() {
+		const { ids, entities } = messagesState;
 
 		const listedMessages = ids
 			.map((id) => entities[id]) // получаем объект сообщения
@@ -47,23 +47,23 @@ function MessagesList() {
 	useEffect(() => {
 		// Помещаем dispatch в useEffect, потому что dispatch вызывается во время рендеринга,
 		// а useEffect выполняет помещённый в него код только, как компонент смонтирован и данные загружены
-		if (messages) {
-			dispatch(setMessages(messages));
+		if (fetchedMessages) {
+			dispatch(setMessages(fetchedMessages));
 		}
-		// dispatch(setMessage(messages));
-		// console.log("MessagesList → myMessages: ", myMessages);
+		// dispatch(setMessage(fetchedMessages));
+		// console.log("MessagesList → messages: ", messages);
 		// console.log("messages: ", messages);
 		// console.log("filteredMessages: ", filteredMessages);
 		// socket.on("newMessage", (payload) => {
 		// 	console.log("socket.on newMessage → payload: ", payload); // => { body: "new message", channelId: 7, id: 8, username: "admin" }
 		// 	setMessagesList([...messagesList, payload.body]);
 		// 	console.log("messagesList: ", messagesList);
-		// 	console.log("myMessages: ", myMessages);
+		// 	console.log("messages: ", messages);
 		// });
 		// return () => {
 		// 	socket.off("newMessage");
 		// };
-	}, [messages, dispatch]);
+	}, [fetchedMessages, dispatch]);
 
 	if (isLoading) return <div>Загружаем сообщения...</div>;
 

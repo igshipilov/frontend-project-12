@@ -1,14 +1,14 @@
 import { createEntityAdapter, createSlice } from "@reduxjs/toolkit";
 
-const getCurrentChannelId = createSlice({
-	name: "getCurrentChannelId",
+const setCurrentChannelId = createSlice({
+	name: "setCurrentChannelId",
 	initialState: 1,
 	reducers: {
-		getChannelById: (state, action) => action.payload,
+		setChannelById: (state, action) => action.payload,
 	},
 });
 
-export const { getChannelById } = getCurrentChannelId.actions;
-export default getCurrentChannelId.reducer;
+export const { setChannelById } = setCurrentChannelId.actions;
+export default setCurrentChannelId.reducer;
 
-export const selectCurrentChannelId = (state) => state.getCurrentChannelId;
+export const selectCurrentChannelId = (state) => state.setCurrentChannelId;
