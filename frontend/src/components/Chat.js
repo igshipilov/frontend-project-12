@@ -15,12 +15,16 @@ import {
 
 import { channelAdded } from "../features/channels/channelsSlice.js";
 import { setMessage } from "../features/messages/messagesSlice.js";
-import { setChannelById } from "../features/channels/getCurrentChannelIdSlice.js";
+import { setChannelById } from "../features/channels/currentChannelIdSlice.js";
+
+import { selectChannels } from "../features/channels/channelsSlice.js";
 
 import { socket } from "../socket.js";
 
 import { Formik } from "formik";
 import { Button, Col, Form, InputGroup, Modal, Row } from "react-bootstrap";
+
+import * as yup from "yup";
 
 function Chat() {
 	const dispatch = useDispatch();
@@ -85,7 +89,7 @@ function FormSendMessage() {
 				username: user,
 			}).unwrap();
 
-			console.log("addMessage → response: ", response);
+			// console.log("addMessage → response: ", response);
 		} catch (error) {
 			throw new Error(`submitMessage error: ${error}`);
 		}
@@ -139,22 +143,6 @@ function FormSendMessage() {
 	);
 }
 
-// FIXME функция добавления канала
-// async function handleAddChannel() {
-// 	const dispatch = useDispatch();
-// 	const [addChannel] = useAddChannelMutation();
-
-// 	try {
-// 		const response = await addChannel({
-// 			name: "test",
-// 		}).unwrap();
-// 		dispatch(channelAdded(response));
-// 		console.log("addChannel → response: ", response);
-// 	} catch (error) {
-// 		console.log("Adding channel error:", error);
-// 		throw new Error(error);
-// 	}
-// }
 
 function FormAddChannel({ hideModal }) {
 	const [addChannel, { error: addChannelError, isLoading: isAddingChannel }] =
@@ -168,10 +156,9 @@ function FormAddChannel({ hideModal }) {
 		error: ChannelLoadingError,
 	} = useGetChannelsQuery();
 
-	const lastChannelId = channels[channels.length - 1].id;
+	const channelsNames = channels.map(({ name }) => name);
 
-	const user = useSelector((state) => state.auth.user);
-	const currentChannelId = useSelector((state) => state.currentChannelId);
+	const lastChannelId = channels[channels.length - 1].id;
 
 	async function submitChannel(values) {
 		try {
@@ -184,7 +171,7 @@ function FormAddChannel({ hideModal }) {
 			}).unwrap();
 
 			hideModal();
-			dispatch(setChannelById(currentChannelId));
+			dispatch(setChannelById(Number(lastChannelId) + 1)); // переводим юзера на созданный канал
 
 			console.log("addChannel → response: ", response);
 		} catch (error) {
@@ -192,8 +179,23 @@ function FormAddChannel({ hideModal }) {
 		}
 	}
 
+	const validationSchema = yup.object({
+		name: yup
+			.string()
+			.required("Надо ввести хоть какое-нибудь название :с")
+			.min(3, "От 3 до 20 символов")
+			.max(20, "От 3 до 20 символов")
+			.notOneOf(
+				channelsNames,
+				"Такое название уже существует, надо уникальное >_<"
+			),
+	});
+
 	return (
 		<Formik
+			validationSchema={validationSchema}
+			validateOnBlur={false}
+			validateOnChange={false}
 			onSubmit={(values, { resetForm }) => {
 				submitChannel(values);
 				resetForm();
@@ -202,14 +204,14 @@ function FormAddChannel({ hideModal }) {
 				name: "",
 			}}
 		>
-			{({ handleSubmit, handleChange, values }) => (
+			{({ handleSubmit, handleChange, values, errors }) => (
 				<>
 					<Form noValidate onSubmit={handleSubmit}>
 						<Row className="mb-3">
 							<Form.Group
 								as={Col}
 								md="4"
-								controlId="FormikMessage"
+								controlId="FormikAddChannel"
 							>
 								<InputGroup hasValidation>
 									<Form.Control
@@ -219,7 +221,14 @@ function FormAddChannel({ hideModal }) {
 										name="name"
 										value={values.name}
 										onChange={handleChange}
+										isInvalid={!!errors.name}
 									/>
+									<Form.Control.Feedback
+										type="invalid"
+										tooltip
+									>
+										{errors.name}
+									</Form.Control.Feedback>
 								</InputGroup>
 							</Form.Group>
 						</Row>
@@ -264,7 +273,6 @@ function ModalAddChannel(props) {
 
 function Channels() {
 	const [modalShow, setModalShow] = useState(false);
-	const myChannels = useSelector((state) => state.channels);
 
 	return (
 		<aside className="channels-bar">
@@ -279,7 +287,7 @@ function Channels() {
 				/>
 			</div>
 			<ul id="channels-box">
-				<ChannelsList customChannels={myChannels} />
+				<ChannelsList/>
 			</ul>
 		</aside>
 	);
