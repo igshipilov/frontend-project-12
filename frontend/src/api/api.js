@@ -44,6 +44,14 @@ export const api = createApi({
 			}),
 			invalidatesTags: ["Channel"],
 		}),
+		renameChannel: builder.mutation({
+			query: ({ id, name }) => ({
+				url: `/channels/${id}`,
+				method: "PATCH",
+				body: { name }, // сервер ожидает получить объект, поэтому мы отправляем ему объект: { name: name }
+			}),
+			invalidatesTags: ["Channel"],
+		}),
 		removeChannel: builder.mutation({
 			query: (id) => ({
 				url: `/channels/${id}`,
@@ -81,7 +89,8 @@ export const {
 
 	useGetChannelsQuery,
 	useAddChannelMutation,
-    useRemoveChannelMutation,
+	useRenameChannelMutation,
+	useRemoveChannelMutation,
 
 	useGetMessagesQuery,
 	useAddMessageMutation,

@@ -14,16 +14,10 @@ import {
 	selectMessages,
 } from "../features/messages/messagesSlice.js";
 
-import { socket } from "../socket.js";
-
 function MessagesList() {
-	const {
-		data: fetchedMessages,
-		isLoading,
-		error,
-		refetch,
-	} = useGetMessagesQuery();
-
+	const { data: fetchedMessages, isLoading, error, refetch } = useGetMessagesQuery();
+	// const [removeMessage] = useRemoveMessageMutation(); // это я пытался удалить все сообщения, не сработало
+    
 	const currentChannelId = useSelector((state) => state.currentChannelId);
 
 	const dispatch = useDispatch();
@@ -40,34 +34,35 @@ function MessagesList() {
 			.map((text, id) => <li key={id}>{text}</li>); // "оформляем" в список
 
 		return listedMessages;
-	}
+	};
+
+	// FIXME or DELETE -- это я пытался удалить все сообщения, потому что криво насохранял:
+	// не у всех есть typeof body === "string"
+	// async function removeAllMessages() {
+	// 	// messages.map(async ({ id }) => await removeMessage(id));
+	// 	await removeMessage("20");
+	// 	refetch();
+	// }
 
 	useEffect(() => {
-		socket.on("newMessage", (payload) => {
-			console.log("socket.on → 'newMessage' payload: ", payload);
-			dispatch(setMessage(payload));
-		});
 		// Помещаем dispatch в useEffect, потому что dispatch вызывается во время рендеринга,
 		// а useEffect выполняет помещённый в него код только, как компонент смонтирован и данные загружены
-		// if (fetchedMessages) {
-		// 	dispatch(setMessages(fetchedMessages));
-		// }
-
+		if (fetchedMessages) {
+			dispatch(setMessages(fetchedMessages));
+		}
 		// dispatch(setMessage(fetchedMessages));
 		// console.log("MessagesList → messages: ", messages);
 		// console.log("messages: ", messages);
 		// console.log("filteredMessages: ", filteredMessages);
-
 		// socket.on("newMessage", (payload) => {
 		// 	console.log("socket.on newMessage → payload: ", payload); // => { body: "new message", channelId: 7, id: 8, username: "admin" }
 		// 	setMessagesList([...messagesList, payload.body]);
 		// 	console.log("messagesList: ", messagesList);
 		// 	console.log("messages: ", messages);
 		// });
-
-		return () => {
-			socket.off("newMessage");
-		};
+		// return () => {
+		// 	socket.off("newMessage");
+		// };
 	}, [fetchedMessages, dispatch]);
 
 	if (isLoading) return <div>Загружаем сообщения...</div>;
@@ -79,6 +74,11 @@ function MessagesList() {
 
 	return (
 		<div>
+			{/* DELETME */}
+			{/* <button type="button" onClick={removeAllMessages}>
+				remove all messages
+			</button> */}
+
 			<ul className="list-unstyled">{filteredMessages()}</ul>
 		</div>
 	);

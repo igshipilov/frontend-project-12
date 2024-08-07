@@ -1,18 +1,27 @@
 import "bootstrap/dist/css/bootstrap.css";
 
 import React, { useState, useEffect } from "react";
-import { useGetChannelsQuery, useRemoveChannelMutation } from "../api/api.js";
+import {
+	useGetChannelsQuery,
+	useRenameChannelMutation,
+	useRemoveChannelMutation,
+} from "../api/api.js";
 
 import { useDispatch, useSelector } from "react-redux";
 import { setChannelById } from "../features/channels/currentChannelIdSlice.js";
 
 import {
 	channelsAdded,
+	channelRenamed,
 	channelRemoved,
 	selectChannels,
 } from "../features/channels/channelsSlice.js";
 
-import { selectMessages } from "../features/messages/messagesSlice.js";
+import {
+	selectMessages,
+	messageRemoved,
+	messagesRemoved,
+} from "../features/messages/messagesSlice.js";
 
 import { selectCurrentChannelId } from "../features/channels/currentChannelIdSlice.js";
 
@@ -23,9 +32,14 @@ import {
 	Dropdown,
 	Form,
 	ListGroup,
+	Modal,
 	InputGroup,
 	Row,
 } from "react-bootstrap";
+
+import { Formik } from "formik";
+
+import * as yup from "yup";
 
 import classNames from "classnames";
 
@@ -43,13 +57,16 @@ function ChannelsList() {
 	async function handleRemoveChannel(id) {
 		try {
 			const response = await removeChannel(id).unwrap();
-			// console.log('response.id: ', response.id, typeof response.id)
+
 			if (response.id) {
+				const messagesIdsToRemove = messages.ids.filter(
+					(messageId) => id === messages.entities[messageId].channelId
+				);
 				dispatch(channelRemoved(response.id));
+				dispatch(messagesRemoved(messagesIdsToRemove));
 			}
 			if (Number(response.id) === currentChannelId) {
-				// возвращаем юзера в # general
-				dispatch(setChannelById(1));
+				dispatch(setChannelById(1)); // возвращаем юзера в # general
 			}
 		} catch (error) {
 			throw new Error(`handleRemoveChannel() error:`, error);
@@ -76,7 +93,177 @@ function ChannelsList() {
 		);
 	}
 
+	function ModalConfirmRemoveChannel(props) {
+		const { onHide, id } = props;
+		return (
+			<Modal
+				{...props}
+				size="lg"
+				aria-labelledby="contained-modal-title-vcenter"
+				centered
+			>
+				<Modal.Header closeButton>
+					<Modal.Title id="contained-modal-title-vcenter">
+						Удалить канал
+					</Modal.Title>
+				</Modal.Header>
+
+				<Modal.Body>
+					<Row>Уверены?</Row>
+					<Button className="btn-secondary" onClick={onHide}>
+						Отменить
+					</Button>
+					<Button
+						className="btn-danger"
+						onClick={() => handleRemoveChannel(id)}
+					>
+						Удалить
+					</Button>
+				</Modal.Body>
+			</Modal>
+		);
+	}
+
+	function FormRenameChannel({ hideModal, id }) {
+		const [
+			renameChannel,
+			{ error: renameChannelError, isLoading: isRenameChannelLoading },
+		] = useRenameChannelMutation();
+
+		const dispatch = useDispatch();
+
+		const {
+			data: channels,
+			isLoading: isChannelsLoading,
+			error: ChannelLoadingError,
+		} = useGetChannelsQuery();
+
+		const channelsNames = channels.map(({ name }) => name);
+
+		async function submitChannel(values) {
+			try {
+				console.log("values: ", values);
+				const response = await renameChannel({
+					id: id,
+					name: values.name,
+				}).unwrap();
+
+				dispatch(channelRenamed({ id, name: values.name }));
+
+				hideModal();
+
+				console.log("renameChannel → response: ", response);
+			} catch (error) {
+				throw new Error("Failed to rename channel: ", error);
+			}
+		}
+
+		const validationSchema = yup.object({
+			name: yup
+				.string()
+				.required("Надо ввести хоть какое-нибудь название :с")
+				.min(3, "От 3 до 20 символов")
+				.max(20, "От 3 до 20 символов")
+				.notOneOf(
+					channelsNames,
+					"Такое название уже существует, надо уникальное >_<"
+				),
+		});
+
+		return (
+			<Formik
+				validationSchema={validationSchema}
+				validateOnBlur={false}
+				validateOnChange={false}
+				onSubmit={(values, { resetForm }) => {
+					submitChannel(values);
+					resetForm();
+				}}
+				initialValues={{
+					name: "",
+				}}
+			>
+				{({ handleSubmit, handleChange, values, errors }) => (
+					<>
+						<Form noValidate onSubmit={handleSubmit}>
+							<Row className="mb-3">
+								<Form.Group
+									as={Col}
+									md="4"
+									controlId="FormikRenameChannel"
+								>
+									<InputGroup hasValidation>
+										<Form.Control
+											type="text"
+											autoFocus
+											aria-describedby="inputGroupPrepend"
+											name="name"
+											value={values.name}
+											onChange={handleChange}
+											isInvalid={!!errors.name}
+										/>
+										<Form.Control.Feedback
+											type="invalid"
+											tooltip
+										>
+											{errors.name}
+										</Form.Control.Feedback>
+									</InputGroup>
+								</Form.Group>
+							</Row>
+
+							<Button
+								className="btn-secondary"
+								onClick={() => hideModal()}
+							>
+								Отменить
+							</Button>
+
+							<Button
+								type="submit"
+								disabled={isRenameChannelLoading}
+							>
+								{isRenameChannelLoading
+									? "Отправляем"
+									: "Отправить"}
+							</Button>
+						</Form>
+					</>
+				)}
+			</Formik>
+		);
+	}
+
+	function ModalRenameChannel(props) {
+		// console.log("props: ", props);
+		return (
+			<Modal
+				{...props}
+				size="lg"
+				aria-labelledby="contained-modal-title-vcenter"
+				centered
+			>
+				<Modal.Header closeButton>
+					<Modal.Title id="contained-modal-title-vcenter">
+						Переименовать канал
+					</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
+					<FormRenameChannel hideModal={props.onHide} id={props.id} />
+				</Modal.Body>
+			</Modal>
+		);
+	}
+
 	function DropdownToggleAndMenu({ id }) {
+		const [
+			modalConfirmRemoveChannelShow,
+			setModalConfirmRemoveChannelShow,
+		] = useState(false);
+
+		const [modalRenameChannelShow, setModalRenameChannelShow] =
+			useState(false);
+
 		const variant = classNames({
 			none: currentChannelId !== id,
 			secondary: currentChannelId === id,
@@ -91,11 +278,28 @@ function ChannelsList() {
 				/>
 
 				<Dropdown.Menu>
-					<Dropdown.Item>Переименовать</Dropdown.Item>
-					<Dropdown.Item onClick={() => handleRemoveChannel(id)}>
+					<Dropdown.Item
+						onClick={() => setModalRenameChannelShow(true)}
+					>
+						Переименовать
+					</Dropdown.Item>
+					<Dropdown.Item
+						onClick={() => setModalConfirmRemoveChannelShow(true)}
+					>
 						Удалить
 					</Dropdown.Item>
 				</Dropdown.Menu>
+
+				<ModalConfirmRemoveChannel
+					show={modalConfirmRemoveChannelShow}
+					onHide={() => setModalConfirmRemoveChannelShow(false)}
+					id={id}
+				/>
+				<ModalRenameChannel
+					show={modalRenameChannelShow}
+					onHide={() => setModalRenameChannelShow(false)}
+					id={id}
+				/>
 			</>
 		);
 	}

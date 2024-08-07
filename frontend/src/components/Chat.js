@@ -29,16 +29,32 @@ import * as yup from "yup";
 function Chat() {
 	const dispatch = useDispatch();
 
-	useEffect(() => {
-		socket.on("newMessage", (payload) => {
-			console.log("socken.on newMessage → payload: ", payload);
-			dispatch(setMessage(payload)); // setMessage – добавляем сообщение в store
-		});
+	// useEffect(() => {
+	// 	socket.on("newMessage", (payload) => {
+	// 		console.log("socken.on newMessage → payload: ", payload);
+	// 		// dispatch(setMessage(payload)); // setMessage – добавляем сообщение в store
+	// 	});
 
-		return () => {
-			socket.off("newMessage");
-		};
-	}, []);
+	// 	socket.on("newChannel", (payload) => {
+	// 		console.log("socken.on newChannel → payload: ", payload); // { id: 6, name: "new channel", removable: true }
+	// 	});
+
+	// 	// subscribe remove channel
+	// 	socket.on("removeChannel", (payload) => {
+	// 		console.log("socken.on removeChannel → payload: ", payload); // { id: 6 };
+	// 	});
+
+	// 	socket.on("renameChannel", (payload) => {
+	// 		console.log("socken.on renameChannel → payload: ", payload); // { id: 7, name: "new name channel", removable: true }
+	// 	});
+
+	// 	return () => {
+	// 		socket.off("newMessage");
+	// 		socket.off("newChannel");
+	// 		socket.off("removeChannel");
+	// 		socket.off("renameChannel");
+	// 	};
+	// }, []);
 
 	return (
 		<>
@@ -143,10 +159,11 @@ function FormSendMessage() {
 	);
 }
 
-
 function FormAddChannel({ hideModal }) {
-	const [addChannel, { error: addChannelError, isLoading: isAddingChannel }] =
-		useAddChannelMutation();
+	const [
+		addChannel,
+		{ error: addChannelError, isLoading: isddChannelLoading },
+	] = useAddChannelMutation();
 
 	const dispatch = useDispatch();
 
@@ -240,8 +257,8 @@ function FormAddChannel({ hideModal }) {
 							Отменить
 						</Button>
 
-						<Button type="submit" disabled={isAddingChannel}>
-							{isAddingChannel ? "Отправляем" : "Отправить"}
+						<Button type="submit" disabled={isddChannelLoading}>
+							{isddChannelLoading ? "Отправляем" : "Отправить"}
 						</Button>
 					</Form>
 				</>
@@ -287,7 +304,7 @@ function Channels() {
 				/>
 			</div>
 			<ul id="channels-box">
-				<ChannelsList/>
+				<ChannelsList />
 			</ul>
 		</aside>
 	);
