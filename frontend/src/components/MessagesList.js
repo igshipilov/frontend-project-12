@@ -43,27 +43,15 @@ function MessagesList() {
 	}
 
 	useEffect(() => {
+		// в реальном времени показывает только что отправленные сообщения
 		socket.on("newMessage", (payload) => {
-			console.log("socket.on → 'newMessage' payload: ", payload);
 			dispatch(setMessage(payload));
 		});
-		// Помещаем dispatch в useEffect, потому что dispatch вызывается во время рендеринга,
-		// а useEffect выполняет помещённый в него код только, как компонент смонтирован и данные загружены
-		// if (fetchedMessages) {
-		// 	dispatch(setMessages(fetchedMessages));
-		// }
 
-		// dispatch(setMessage(fetchedMessages));
-		// console.log("MessagesList → messages: ", messages);
-		// console.log("messages: ", messages);
-		// console.log("filteredMessages: ", filteredMessages);
-
-		// socket.on("newMessage", (payload) => {
-		// 	console.log("socket.on newMessage → payload: ", payload); // => { body: "new message", channelId: 7, id: 8, username: "admin" }
-		// 	setMessagesList([...messagesList, payload.body]);
-		// 	console.log("messagesList: ", messagesList);
-		// 	console.log("messages: ", messages);
-		// });
+		// подгружает весь список сообщений из store
+		if (fetchedMessages) {
+			dispatch(setMessages(fetchedMessages));
+		}
 
 		return () => {
 			socket.off("newMessage");

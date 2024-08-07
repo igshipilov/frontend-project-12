@@ -89,7 +89,6 @@ function MessagesContainer() {
 }
 
 function FormSendMessage() {
-	// const [userMessage, setUserMessage] = useState("");
 	const [addMessage, { error: addMessageError, isLoading: isAddingMessage }] =
 		useAddMessageMutation();
 

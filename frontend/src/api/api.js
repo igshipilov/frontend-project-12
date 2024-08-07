@@ -64,7 +64,6 @@ export const api = createApi({
 			query: () => "/messages",
 			providesTags: ["Message"],
 		}),
-
 		addMessage: builder.mutation({
 			query: (message) => ({
 				url: "/messages",

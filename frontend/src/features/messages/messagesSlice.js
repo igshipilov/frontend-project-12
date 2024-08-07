@@ -18,4 +18,3 @@ export const { setMessage, setMessages, messageRemoved, messagesRemoved } =
 export default messagesSlice.reducer;
 
 export const selectMessages = (state) => state.messages;
-``

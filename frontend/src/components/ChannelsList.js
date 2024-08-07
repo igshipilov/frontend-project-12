@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setChannelById } from "../features/channels/currentChannelIdSlice.js";
 
 import {
+	channelAdded,
 	channelsAdded,
 	channelRenamed,
 	channelRemoved,
@@ -43,14 +44,15 @@ import * as yup from "yup";
 
 import classNames from "classnames";
 
+import { socket } from "../socket.js";
+
 function ChannelsList() {
 	const { data: fetchedChannels, isLoading, error } = useGetChannelsQuery();
 	const [removeChannel] = useRemoveChannelMutation();
 
 	const dispatch = useDispatch();
 
-	// const channels = fetchedChannels;
-	const channelsState = useSelector(selectChannels);
+	const channelsFromState = useSelector(selectChannels);
 	const currentChannelId = useSelector(selectCurrentChannelId);
 	const messages = useSelector(selectMessages);
 
@@ -142,17 +144,17 @@ function ChannelsList() {
 
 		async function submitChannel(values) {
 			try {
-				console.log("values: ", values);
+				// console.log("values: ", values);
 				const response = await renameChannel({
 					id: id,
 					name: values.name,
 				}).unwrap();
 
-				dispatch(channelRenamed({ id, name: values.name }));
+				// dispatch(channelRenamed({ id, name: values.name }));
 
 				hideModal();
 
-				console.log("renameChannel → response: ", response);
+				// console.log("renameChannel → response: ", response);
 			} catch (error) {
 				throw new Error("Failed to rename channel: ", error);
 			}
@@ -314,9 +316,8 @@ function ChannelsList() {
 	}
 
 	function channels() {
-		const { ids, entities } = channelsState;
+		const { ids, entities } = channelsFromState;
 
-		// 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢 ЗДЕСЬ добавляем кнопку с выпадающим списокм Rename и Remove
 		const listedChannels = ids
 			.map((id) => entities[id])
 			.map(({ name, removable, id }) => (
@@ -335,9 +336,45 @@ function ChannelsList() {
 	}
 
 	useEffect(() => {
+		socket.on("newChannel", (payload) => {
+			console.log("socket.on → newChannel payload: ", payload);
+			dispatch(channelAdded(payload));
+		});
+
+		socket.on("renameChannel", (payload) => {
+			console.log("socket.on → renameChannel payload: ", payload);
+			dispatch(
+				channelRenamed({
+					id: payload.id,
+					changes: { name: payload.name },
+				})
+			);
+		});
+
+		socket.on("removeChannel", (payload) => {
+			console.log("socket.on → removeChannel payload: ", payload);
+			dispatch(channelRemoved(payload.id));
+
+			if (Number(payload.id) === currentChannelId) {
+				dispatch(setChannelById(1));
+			}
+
+			const messagesIdsToRemove = messages.ids.filter(
+				(messageId) =>
+					payload.id === messages.entities[messageId].channelId
+			);
+			dispatch(messagesRemoved(messagesIdsToRemove));
+		});
+
 		if (fetchedChannels) {
 			dispatch(channelsAdded(fetchedChannels));
 		}
+
+		return () => {
+			socket.off("newChannel");
+			socket.off("renameChannel");
+			socket.off("removeChannel");
+		};
 	}, [fetchedChannels, dispatch]);
 
 	if (isLoading) return <div>Загружаем каналы...</div>;
