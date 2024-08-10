@@ -8,7 +8,7 @@ import {
 } from "../api/api.js";
 
 import { useDispatch, useSelector } from "react-redux";
-import { setChannelById } from "../features/channels/currentChannelIdSlice.js";
+import { setActiveChannelId } from "../features/channels/activeChannelIdSlice.js";
 
 import {
 	channelAdded,
@@ -24,7 +24,7 @@ import {
 	messagesRemoved,
 } from "../features/messages/messagesSlice.js";
 
-import { selectCurrentChannelId } from "../features/channels/currentChannelIdSlice.js";
+import { selectCurrentChannelId } from "../features/channels/activeChannelIdSlice.js";
 
 import {
 	Button,
@@ -53,12 +53,16 @@ function ChannelsList() {
 	const dispatch = useDispatch();
 
 	const channelsFromState = useSelector(selectChannels);
-	const currentChannelId = useSelector(selectCurrentChannelId);
+	const activeChannelId = useSelector(selectCurrentChannelId);
 	const messages = useSelector(selectMessages);
 
 	async function handleRemoveChannel(id) {
 		try {
 			const response = await removeChannel(id).unwrap();
+
+			// if (Number(response.id) === activeChannelId) {
+			// 	dispatch(setActiveChannelId(1)); // возвращаем юзера в # general
+			// }
 
 			if (response.id) {
 				const messagesIdsToRemove = messages.ids.filter(
@@ -66,9 +70,6 @@ function ChannelsList() {
 				);
 				dispatch(channelRemoved(response.id));
 				dispatch(messagesRemoved(messagesIdsToRemove));
-			}
-			if (Number(response.id) === currentChannelId) {
-				dispatch(setChannelById(1)); // возвращаем юзера в # general
 			}
 		} catch (error) {
 			throw new Error(`handleRemoveChannel() error:`, error);
@@ -81,14 +82,14 @@ function ChannelsList() {
 			"rounded-0": true,
 			"text-start": true,
 			"text-truncate": true,
-			"btn-secondary": currentChannelId === id,
+			"btn-secondary": activeChannelId === id,
 		});
 
 		return (
 			<Button
 				variant="none"
 				className={btnClass}
-				onClick={() => dispatch(setChannelById(id))}
+				onClick={() => dispatch(setActiveChannelId(id))}
 			>
 				{children}
 			</Button>
@@ -267,8 +268,8 @@ function ChannelsList() {
 			useState(false);
 
 		const variant = classNames({
-			none: currentChannelId !== id,
-			secondary: currentChannelId === id,
+			none: activeChannelId !== id,
+			secondary: activeChannelId === id,
 		});
 
 		return (
@@ -336,13 +337,23 @@ function ChannelsList() {
 	}
 
 	useEffect(() => {
+		if (fetchedChannels) {
+			dispatch(channelsAdded(fetchedChannels));
+		}
+
 		socket.on("newChannel", (payload) => {
+			console.group("ChannelsList.js");
 			console.log("socket.on → newChannel payload: ", payload);
+			console.groupEnd();
+
 			dispatch(channelAdded(payload));
 		});
 
 		socket.on("renameChannel", (payload) => {
-			console.log("socket.on → renameChannel payload: ", payload);
+			console.group("ChannelsList.js → socket.on → renameChannel: ");
+			console.log("payload", payload);
+			console.groupEnd();
+
 			dispatch(
 				channelRenamed({
 					id: payload.id,
@@ -352,30 +363,38 @@ function ChannelsList() {
 		});
 
 		socket.on("removeChannel", (payload) => {
-			console.log("socket.on → removeChannel payload: ", payload);
-			dispatch(channelRemoved(payload.id));
+			const removedChannelId = Number(payload.id);
 
-			if (Number(payload.id) === currentChannelId) {
-				dispatch(setChannelById(1));
+			console.group("ChannelsList.js → socket.on → removeChannel: ");
+			console.log("payload", payload);
+
+			console.log("activeChannelId: ", activeChannelId);
+			console.log("removedChannelId: ", removedChannelId);
+			console.log(
+				"removedChannelId === activeChannelId: ",
+				removedChannelId === activeChannelId
+			);
+
+			if (removedChannelId === activeChannelId) {
+				dispatch(setActiveChannelId(1));
 			}
+
+			dispatch(channelRemoved(removedChannelId));
 
 			const messagesIdsToRemove = messages.ids.filter(
 				(messageId) =>
-					payload.id === messages.entities[messageId].channelId
+					removedChannelId === messages.entities[messageId].channelId
 			);
 			dispatch(messagesRemoved(messagesIdsToRemove));
+			console.groupEnd();
 		});
-
-		if (fetchedChannels) {
-			dispatch(channelsAdded(fetchedChannels));
-		}
 
 		return () => {
 			socket.off("newChannel");
 			socket.off("renameChannel");
 			socket.off("removeChannel");
 		};
-	}, [fetchedChannels, dispatch]);
+	}, [dispatch, fetchedChannels, messages, activeChannelId]);
 
 	if (isLoading) return <div>Загружаем каналы...</div>;
 

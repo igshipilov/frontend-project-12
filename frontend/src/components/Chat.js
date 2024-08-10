@@ -15,7 +15,7 @@ import {
 
 import { channelAdded } from "../features/channels/channelsSlice.js";
 import { setMessage } from "../features/messages/messagesSlice.js";
-import { setChannelById } from "../features/channels/currentChannelIdSlice.js";
+import { setActiveChannelId } from "../features/channels/activeChannelIdSlice.js";
 
 import { selectChannels } from "../features/channels/channelsSlice.js";
 
@@ -25,6 +25,8 @@ import { Formik } from "formik";
 import { Button, Col, Form, InputGroup, Modal, Row } from "react-bootstrap";
 
 import * as yup from "yup";
+
+import _ from "lodash";
 
 function Chat() {
 	const dispatch = useDispatch();
@@ -93,14 +95,14 @@ function FormSendMessage() {
 		useAddMessageMutation();
 
 	const user = useSelector((state) => state.auth.user);
-	const currentChannelId = useSelector((state) => state.currentChannelId);
+	const activeChannelId = useSelector((state) => state.activeChannelId);
 
 	async function submitMessage(values) {
 		try {
 			// addMessage – это RTK Query post-запрос через api сервера
 			const response = await addMessage({
 				body: values.message,
-				channelId: currentChannelId,
+				channelId: activeChannelId,
 				username: user,
 			}).unwrap();
 
@@ -172,22 +174,32 @@ function FormAddChannel({ hideModal }) {
 		error: ChannelLoadingError,
 	} = useGetChannelsQuery();
 
+	useEffect(() => {
+		console.group("Chat.js");
+		console.log("channels: ", channels);
+		console.log("lastChannelId: ", channels[channels.length - 1].id);
+		console.groupEnd();
+	}, []);
+
 	const channelsNames = channels.map(({ name }) => name);
 
-	const lastChannelId = channels[channels.length - 1].id;
+	const lastChannelId = Number(channels[channels.length - 1].id);
 
 	async function submitChannel(values) {
 		try {
-			const currentChannelId = lastChannelId + 1;
+			const newChannelId = lastChannelId + 1;
+			console.log("newChannelId: ", newChannelId);
+			// const newChannelId = _.uniqueId('hey');
 
 			const response = await addChannel({
-				id: currentChannelId,
+				id: newChannelId,
 				name: values.name,
 				removable: true,
 			}).unwrap();
 
 			hideModal();
-			dispatch(setChannelById(Number(lastChannelId) + 1)); // переводим юзера на созданный канал
+			// dispatch(setActiveChannelId(Number(lastChannelId) + 1)); // переводим юзера на созданный канал
+			dispatch(setActiveChannelId(Number(newChannelId))); // переводим юзера на созданный канал
 
 			console.log("addChannel → response: ", response);
 		} catch (error) {

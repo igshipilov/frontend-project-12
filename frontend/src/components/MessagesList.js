@@ -24,7 +24,7 @@ function MessagesList() {
 		refetch,
 	} = useGetMessagesQuery();
 
-	const currentChannelId = useSelector((state) => state.currentChannelId);
+	const activeChannelId = useSelector((state) => state.activeChannelId);
 
 	const dispatch = useDispatch();
 
@@ -35,7 +35,7 @@ function MessagesList() {
 
 		const listedMessages = ids
 			.map((id) => entities[id]) // получаем объект сообщения
-			.filter(({ channelId }) => channelId === currentChannelId) // оставляем только сообщения, соответствующие текущему каналу
+			.filter(({ channelId }) => channelId === activeChannelId) // оставляем только сообщения, соответствующие текущему каналу
 			.map(({ body }) => body) // вытаскиваем текст сообщения
 			.map((text, id) => <li key={id}>{text}</li>); // "оформляем" в список
 
@@ -46,6 +46,9 @@ function MessagesList() {
 		// в реальном времени показывает только что отправленные сообщения
 		socket.on("newMessage", (payload) => {
 			dispatch(setMessage(payload));
+			console.group("MessagesList.js");
+			console.log(payload);
+			console.groupEnd();
 		});
 
 		// подгружает весь список сообщений из store
