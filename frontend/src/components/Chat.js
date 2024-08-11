@@ -13,13 +13,7 @@ import {
 	useAddMessageMutation,
 } from "../api/api.js";
 
-import { channelAdded } from "../features/channels/channelsSlice.js";
-import { setMessage } from "../features/messages/messagesSlice.js";
 import { setActiveChannelId } from "../features/channels/activeChannelIdSlice.js";
-
-import { selectChannels } from "../features/channels/channelsSlice.js";
-
-import { socket } from "../socket.js";
 
 import { Formik } from "formik";
 import { Button, Col, Form, InputGroup, Modal, Row } from "react-bootstrap";
@@ -183,25 +177,23 @@ function FormAddChannel({ hideModal }) {
 
 	const channelsNames = channels.map(({ name }) => name);
 
-	const lastChannelId = Number(channels[channels.length - 1].id);
-
 	async function submitChannel(values) {
 		try {
-			const newChannelId = lastChannelId + 1;
-			console.log("newChannelId: ", newChannelId);
-			// const newChannelId = _.uniqueId('hey');
+			console.group("Chat.js → submitChannel()");
 
 			const response = await addChannel({
-				id: newChannelId,
 				name: values.name,
 				removable: true,
 			}).unwrap();
 
+			const newChannelId = Number(response.id);
+
+			dispatch(setActiveChannelId(newChannelId));
+
 			hideModal();
-			// dispatch(setActiveChannelId(Number(lastChannelId) + 1)); // переводим юзера на созданный канал
-			dispatch(setActiveChannelId(Number(newChannelId))); // переводим юзера на созданный канал
 
 			console.log("addChannel → response: ", response);
+			console.groupEnd();
 		} catch (error) {
 			throw new Error(`submitChannel error: ${error}`);
 		}

@@ -48,7 +48,7 @@ export const api = createApi({
 			query: ({ id, name }) => ({
 				url: `/channels/${id}`,
 				method: "PATCH",
-				body: { name }, // сервер ожидает получить объект, поэтому мы отправляем ему объект: { name: name }
+				body: { name }, // сервер ожидает получить объект, поэтому мы отправляем ему объект { name: name }
 			}),
 			invalidatesTags: ["Channel"],
 		}),

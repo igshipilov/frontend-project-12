@@ -342,8 +342,11 @@ function ChannelsList() {
 		}
 
 		socket.on("newChannel", (payload) => {
+			const newChannelId = payload.id;
+
 			console.group("ChannelsList.js");
 			console.log("socket.on → newChannel payload: ", payload);
+			console.log("newChannelId: ", newChannelId);
 			console.groupEnd();
 
 			dispatch(channelAdded(payload));
