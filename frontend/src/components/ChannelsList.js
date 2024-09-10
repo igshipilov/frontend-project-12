@@ -24,7 +24,7 @@ import {
 	messagesRemoved,
 } from "../features/messages/messagesSlice.js";
 
-import { selectCurrentChannelId } from "../features/channels/activeChannelIdSlice.js";
+import { selectActiveChannelId } from "../features/channels/activeChannelIdSlice.js";
 
 import {
 	Button,
@@ -39,11 +39,8 @@ import {
 } from "react-bootstrap";
 
 import { Formik } from "formik";
-
 import * as yup from "yup";
-
 import classNames from "classnames";
-
 import { socket } from "../socket.js";
 
 function ChannelsList() {
@@ -53,22 +50,29 @@ function ChannelsList() {
 	const dispatch = useDispatch();
 
 	const channelsFromState = useSelector(selectChannels);
-	const activeChannelId = useSelector(selectCurrentChannelId);
+	const activeChannelId = useSelector(selectActiveChannelId);
 	const messages = useSelector(selectMessages);
 
 	async function handleRemoveChannel(id) {
 		try {
 			const response = await removeChannel(id).unwrap();
+			const removedChannelId = Number(response.id);
 
-			// if (Number(response.id) === activeChannelId) {
-			// 	dispatch(setActiveChannelId(1)); // возвращаем юзера в # general
-			// }
+			console.group("channelList.js → handleRemoveChannel()");
+			console.log("removedChannelId: ", removedChannelId);
+			console.groupEnd();
 
-			if (response.id) {
+			// DELETME or FIXME
+			// Этот же код я использую в socket.on
+			// НО если убрать отсюда этот код,
+			// то НЕ исчезает ПОСЛЕДНИЙ канал у удаляющего их юзера
+			if (removedChannelId) {
 				const messagesIdsToRemove = messages.ids.filter(
-					(messageId) => id === messages.entities[messageId].channelId
+					(messageId) =>
+						removedChannelId ===
+						messages.entities[messageId].channelId
 				);
-				dispatch(channelRemoved(response.id));
+				dispatch(channelRemoved(removedChannelId));
 				dispatch(messagesRemoved(messagesIdsToRemove));
 			}
 		} catch (error) {
@@ -336,8 +340,39 @@ function ChannelsList() {
 		return listedChannels;
 	}
 
+    
+	// function channels() { // DELETME ?
+	// 	if (!fetchedChannels) {
+	// 		return;
+	// 	} else {
+	// 	const ids = fetchedChannels.map(({ id }) => id);
+	// 	const entities = fetchedChannels;
+	// 	// const { ids, entities } = channelsFromState;
+
+	// 	const listedChannels = ids
+	// 		.map((id) => entities[id])
+	// 		.map(({ name, removable, id }) => (
+	// 			<ListGroup key={id}>
+	// 				{removable ? (
+	// 					<EditableButton id={Number(id)}>
+	// 						{"# " + name}
+	// 					</EditableButton>
+	// 				) : (
+	// 					<MyButton id={Number(id)}>{"# " + name}</MyButton>
+	// 				)}
+	// 			</ListGroup>
+	// 		));
+
+	// 	return listedChannels;}
+	// }
+
 	useEffect(() => {
 		if (fetchedChannels) {
+			console.group("ChannelsList.js → useEffect");
+			console.log("fetchedChannels: ", fetchedChannels);
+			console.log("channelsFromState: ", channelsFromState);
+			console.groupEnd();
+
 			dispatch(channelsAdded(fetchedChannels));
 		}
 
@@ -382,12 +417,11 @@ function ChannelsList() {
 				dispatch(setActiveChannelId(1));
 			}
 
-			dispatch(channelRemoved(removedChannelId));
-
 			const messagesIdsToRemove = messages.ids.filter(
 				(messageId) =>
 					removedChannelId === messages.entities[messageId].channelId
 			);
+			dispatch(channelRemoved(removedChannelId));
 			dispatch(messagesRemoved(messagesIdsToRemove));
 			console.groupEnd();
 		});
@@ -397,7 +431,13 @@ function ChannelsList() {
 			socket.off("renameChannel");
 			socket.off("removeChannel");
 		};
-	}, [dispatch, fetchedChannels, messages, activeChannelId]);
+	}, [
+		dispatch,
+		fetchedChannels,
+		messages,
+		activeChannelId,
+		// channelsFromState, // если раскомментить, тогда только что удалённые каналы появляются в низу списка на экране
+	]);
 
 	if (isLoading) return <div>Загружаем каналы...</div>;
 
